@@ -4,8 +4,8 @@
 window.AQARAK_CONFIG = {
   // من Supabase > Project Settings > API
   // اتركهما فارغين لتشغيل الموقع في «الوضع التجريبي» بأمثلة توضيحية
-  SUPABASE_URL: "",
-  SUPABASE_ANON_KEY: "",
+  SUPABASE_URL: "https://ikfpzqoodglsicnxnihb.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_nUf-KO4dmzX897V7HMOvtA_WvVLI4jr",
 
   // رقم واتساب المنصة بالصيغة الدولية بلا + ولا مسافات، مثال: 22236000000
   PLATFORM_WHATSAPP: "22227870535",
