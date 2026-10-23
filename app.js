@@ -291,7 +291,7 @@ async function renderMine(){
   const parts=await Promise.all(a.map(async m=>{
     let offers=[],req=null;try{[req]=await API.myRequest(m.token);offers=(await API.myOffers(m.token)).sort((x,y)=>(y.verified_broker?1:0)-(x.verified_broker?1:0))}catch(err){console.error(err)}
     const link=location.origin+location.pathname+"?my="+m.token;
-    return `<div class="box" style="margin:0"><div class="row" style="justify-content:space-between"><b>${esc(m.label)}</b><span class="alt">${req&&req.status!=="open"?t("مغلق"):""}</span></div>
+    return `<div class="box" style="margin:0"><div class="row" style="justify-content:space-between"><b>${esc(m.label)}</b><span class="alt">${req&&req.status==="pending"?t("ينتظر المراجعة"):req&&req.status!=="open"?t("مغلق"):""}</span></div>
       ${offers.length?offers.map(o=>`<div class="offer" style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg);border-radius:10px;padding:8px 10px;margin-top:8px">
         <span>${o.verified_broker?`<span class="badge vb">✓ ${t("سمسار موثّق")}</span> `:""}${FEAT("COMMISSION")&&o.commission?`<span class="badge">${t("العمولة")}: ${esc(t(o.commission))}</span> `:""}${o.name?`<b>${esc(o.name)}</b> · `:""}${esc(o.message)}${o.listing_id?` · <a href="#l-${o.listing_id}" data-item-link="${o.listing_id}">${t("رقم العقار")} ${o.listing_id}</a>`:""}</span>
         <span class="row">${o.price?`<b style="color:var(--brand)">${fmt(o.price)} ${t("أوقية")}</b>`:""}<a class="btn small" href="${waLink(o.whatsapp,"السلام عليكم، بخصوص عرضك على طلبي في عقارك")}" target="_blank" rel="noopener">${t("تواصل")}</a></span></div>`).join("")
@@ -407,7 +407,7 @@ $("#reqForm").addEventListener("submit",async e=>{
     f.reset();d("dlgReq").close();
     REQS=await API.publicRequests().catch(()=>REQS);render();renderMine();
     const sum=`طلب جديد على عقارك: ${lbl}${o.residence!=="موريتانيا"?" — مقيم في "+o.residence:""}`;
-    done("وصل طلبك","سيصل طلبك إلى السماسرة الموثوقين، وتأتيك العروض على واتساب.",PLATFORM?waLink(PLATFORM,sum):"");
+    done("وصل طلبك","سنراجعه بسرعة ثم نرسله إلى السماسرة الموثوقين، وتأتيك العروض على واتساب.",PLATFORM?waLink(PLATFORM,sum):"");
     $("#itemBody").insertAdjacentHTML("beforeend",`<div class="alt">${t("تابع العروض التي تصلك في قسم «طلباتي» في هذه الصفحة.")}</div>`);
   }catch(err){console.error(err);toast(sendErr(err))}finally{btn.disabled=false}
 });

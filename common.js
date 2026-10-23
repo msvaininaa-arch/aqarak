@@ -155,7 +155,7 @@ const API = {
     const {error}=await sb.from("listings").insert(obj); if(error) throw error; return obj;
   },
   async addRequest(obj){
-    obj=withRef(Object.assign({},obj,{status:"open",owner_token:uuid()}));
+    obj=withRef(Object.assign({},obj,{status:"pending",owner_token:uuid()}));  // يظهر بعد موافقة المدير
     if(DEMO){obj.id=++demoId;obj.created_at=new Date().toISOString();DEMO_DB.requests.push(obj);return obj}
     need();
     const {error}=await sb.from("requests").insert(obj); if(error) throw error; return obj;

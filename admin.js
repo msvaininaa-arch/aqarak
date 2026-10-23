@@ -14,7 +14,7 @@ async function reload(){
   try{[DATA.listings,DATA.requests,DATA.brokers,DATA.offers]=await Promise.all([API.all("listings"),API.all("requests"),API.all("brokers"),API.all("offers")])}
   catch(err){console.error(err);toast("تعذّر التحميل. تأكد أن حسابك مضاف إلى جدول admins.");return}
   const pend=DATA.listings.filter(l=>l.status==="pending").length;
-  $("#stats").innerHTML=[["تنتظر المراجعة",pend],["إعلانات منشورة",DATA.listings.filter(l=>l.status==="approved").length],["طلبات مفتوحة",DATA.requests.filter(r=>r.status==="open").length],["عروض على الطلبات",DATA.offers.length]]
+  $("#stats").innerHTML=[["تنتظر المراجعة",pend],["إعلانات منشورة",DATA.listings.filter(l=>l.status==="approved").length],["طلبات تنتظر/مفتوحة",DATA.requests.filter(r=>r.status==="pending").length+" / "+DATA.requests.filter(r=>r.status==="open").length],["عروض على الطلبات",DATA.offers.length]]
     .map(([l,n])=>`<div><b>${n}</b>${l}</div>`).join("");
   draw();LOADED=true;document.dispatchEvent(new Event("adm-data"));
 }
@@ -38,13 +38,13 @@ function draw(){
         ${l.status==="approved"&&window.AQ.FEAT("FRESHNESS")?`<button class="btn small ghost" data-a="confirm" data-id="${l.id}">✓ ما زال متوفرًا</button>`:""}${l.status==="approved"?`<button class="btn small ghost" data-a="feature" data-id="${l.id}">${l.featured?"ألغِ التمييز":"ميّز"}</button><button class="btn small ghost" data-a="rented" data-id="${l.id}">أُجّر/بيع</button>`:""}
         <button class="btn small danger" data-a="del" data-id="${l.id}">احذف</button></div></td></tr>`).join(""):`<tr><td colspan="7" class="alt">لا شيء هنا.</td></tr>`);
   }else if(TAB==="requests"){
-    T.innerHTML=`<tr><th>#</th><th>الطلب</th><th>الميزانية</th><th>المقيم في</th><th>صاحب الطلب</th><th>الحالة</th><th></th></tr>`+(DATA.requests.length?DATA.requests.map(r=>`<tr>
+    T.innerHTML=`<tr><th>#</th><th>الطلب</th><th>الميزانية</th><th>المقيم في</th><th>صاحب الطلب</th><th>الحالة</th><th></th></tr>`+(DATA.requests.length?DATA.requests.slice().sort((x,y)=>(y.status==="pending")-(x.status==="pending")).map(r=>`<tr>
       <td>${r.id}<br><span class="alt">${when(r.created_at)}</span></td>
       <td><b>${esc(r.ptype)} ${r.kind==="buy"?"للشراء":r.kind==="invest"?"استثمار":r.kind==="daily"?"إيجار يومي":"للإيجار"}</b> · ${esc(r.city)}${r.area?" · "+esc(r.area):""}<br><span class="alt">${r.rooms?r.rooms+" غرف · ":""}${esc(r.duration||"")}${r.furnished?" · مفروش":""}${r.solar?" · بلا انقطاع":""}${r.move_in?" · الدخول "+esc(r.move_in):""}${r.ref?" · عن طريق "+esc(r.ref):""}${r.advance_max?" · يدفع "+esc(window.AQ.ADV_TXT(r.advance_max))+" كحد أقصى":""}</span>${r.notes?`<div class="alt">${esc(r.notes)}</div>`:""}</td>
       <td>${r.budget?fmt(r.budget)+`<br><span class="alt">بالقديمة: ${window.AQ.oldTxt(r.budget)}</span>`:"—"}</td><td>${esc(r.residence)}</td>
       <td>${esc(r.name||"")}<br><a href="${waLink(r.whatsapp,"السلام عليكم، بخصوص طلبك رقم "+r.id+" على عقارك")}" target="_blank" rel="noopener">${esc(r.whatsapp)}</a></td>
-      <td><span class="st ${r.status}">${{open:"مفتوح",matched:"وُجد عرض",closed:"مغلق"}[r.status]}</span></td>
-      <td><div class="row"><button class="btn small" data-a="match" data-id="${r.id}">وُجد عرض</button><button class="btn small ghost" data-a="close" data-id="${r.id}">أغلق</button></div></td></tr>`).join(""):`<tr><td colspan="7" class="alt">لا طلبات بعد.</td></tr>`);
+      <td><span class="st ${r.status}">${{pending:"ينتظر",open:"مفتوح",matched:"وُجد عرض",closed:"مغلق"}[r.status]}</span></td>
+      <td><div class="row">${r.status==="pending"?`<button class="btn small" data-a="ropen" data-id="${r.id}">انشر</button><button class="btn small ghost" data-a="close" data-id="${r.id}">ارفض</button>`:`<button class="btn small" data-a="match" data-id="${r.id}">وُجد عرض</button><button class="btn small ghost" data-a="close" data-id="${r.id}">أغلق</button>`}</div></td></tr>`).join(""):`<tr><td colspan="7" class="alt">لا طلبات بعد.</td></tr>`);
   }else if(TAB==="offers"){
     T.innerHTML=`<tr><th>#</th><th>على الطلب</th><th>العرض</th><th>السعر</th><th>صاحب العرض</th><th></th></tr>`+(DATA.offers.length?DATA.offers.map(o=>{const r=DATA.requests.find(x=>x.id===o.request_id);return `<tr>
       <td>${o.id}<br><span class="alt">${when(o.created_at)}</span></td>
@@ -123,6 +123,7 @@ $("#tbl").addEventListener("click",async e=>{
     if(a==="feature")await API.update("listings",id,{featured:!L.featured});
     if(a==="rented")await API.update("listings",id,{status:"rented"});
     if(a==="del"){if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="تأكيد الحذف";return}await API.remove("listings",id)}
+    if(a==="ropen")await API.update("requests",id,{status:"open"});
     if(a==="match")await API.update("requests",id,{status:"matched"});
     if(a==="close")await API.update("requests",id,{status:"closed"});
     if(a==="ohide")await API.update("offers",id,{status:"hidden"});

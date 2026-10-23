@@ -53,7 +53,7 @@ const trend=(a,b)=>b===0?(a?"▲":""):a>b?`▲ ${Math.round((a-b)/b*100)}%`:a<b?
 function render(){
   const D=ADM.data,box=$("#today");if(!box)return;
   const L=D.listings,R=D.requests,B=D.brokers;
-  const pend=L.filter(l=>l.status==="pending");
+  const pend=L.filter(l=>l.status==="pending"),pendR=R.filter(r=>r.status==="pending");
   const lonely=R.filter(r=>r.status==="open"&&age(r.created_at)>DAY&&!D.offers.some(o=>o.request_id===r.id&&o.status!=="hidden"));
   const fresh=R.filter(r=>r.status==="open"&&age(r.created_at)<=DAY);
   const stale=L.filter(l=>l.status==="approved"&&age(l.confirmed_at||l.created_at)>30*DAY);
@@ -69,6 +69,7 @@ function render(){
 
   const task=(n,title,body,act)=>n?`<details class="task" ${n?"open":""}><summary><b class="n">${n}</b> ${title}${act||""}</summary><div class="tbody">${body}</div></details>`:"";
   const tasks=[
+   task(pendR.length,"طلبات تنتظر مراجعتك — لا تظهر للسماسرة قبل موافقتك",pendR.map(r=>`<div class="trow"><div><b>#${r.id}</b> ${esc(reqLabel(r))}${r.notes?`<br><span class="alt">${esc(r.notes)}</span>`:""}</div><div class="row"><button class="btn small" data-rq="open" data-id="${r.id}">انشر</button><button class="btn small ghost" data-rq="closed" data-id="${r.id}">ارفض</button></div></div>`).join("")),
    task(pend.length,"إعلانات تنتظر مراجعتك","<p class='alt'>لا يظهر أي إعلان قبل موافقتك.</p>",` <button class="btn small" data-go-tab="pending">راجعها</button>`),
    task(lonely.length,"طلبات مرّ عليها يوم بلا عرض — لا تتركها تبرد",lonely.map(r=>{
      const m=matches(r,L),bs=brokersFor(r,B);
@@ -112,7 +113,7 @@ function render(){
 طلبات جديدة: ${w0.req} (السابق ${w1.req}) · إعلانات جديدة: ${w0.lst} (${w1.lst}) · عروض: ${w0.off} (${w1.off})
 عروض لكل طلب: ${w0.perReq.toFixed(1)} · طلبات أُجيبت خلال 24 ساعة: ${w0.within24}%${w0.hrs!=null?` · الوقت حتى أول عرض: ${Math.round(w0.hrs)} ساعة`:""}
 الطلب/العرض: ${gap.map(g=>`${g.a} ${g.d}/${g.s}`).join(" · ")}
-مهام معلقة: مراجعة ${pend.length} · طلبات بلا عرض ${lonely.length} · مشبوه ${sus.length} · قديم ${stale.length} · سماسرة ينتظرون ${waitingB.length}`;
+مهام معلقة: طلبات للمراجعة ${pendR.length} · إعلانات للمراجعة ${pend.length} · طلبات بلا عرض ${lonely.length} · مشبوه ${sus.length} · قديم ${stale.length} · سماسرة ينتظرون ${waitingB.length}`;
 }
 document.addEventListener("click",async e=>{
   const g=e.target.closest("[data-go-tab]");if(g){ADM.show(g.dataset.goTab);return}
@@ -121,6 +122,7 @@ document.addEventListener("click",async e=>{
     // نسخة للتحليل: بلا أرقام هواتف أصحاب الطلبات ولا مفاتيحهم السرية
     const safe={exported_at:new Date().toISOString(),listings:D.listings,requests:D.requests.map(({whatsapp,name,owner_token,...r})=>r),offers:D.offers.map(({whatsapp,name,...o})=>o),brokers:D.brokers.map(({whatsapp,...b})=>b)};
     const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(safe,null,1)],{type:"application/json"}));a.download=`aqarak-data-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000)}
+  const q=e.target.closest("[data-rq]");if(q){try{await window.AQ.API.update("requests",Number(q.dataset.id),{status:q.dataset.rq});toast("تم");await ADM.reload()}catch(err){console.error(err);toast("تعذّر التنفيذ")}return}
   const s=e.target.closest("[data-smart]");if(s){try{await window.AQ.API.update("listings",Number(s.dataset.id),s.dataset.smart==="confirm"?{confirmed_at:new Date().toISOString()}:{status:"rented"});toast("تم");await ADM.reload()}catch(err){console.error(err);toast("تعذّر التنفيذ")}}
 });
 document.addEventListener("adm-data",render);

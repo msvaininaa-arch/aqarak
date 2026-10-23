@@ -86,7 +86,7 @@ create table if not exists public.requests (
   name text,
   whatsapp text not null check (char_length(whatsapp) between 6 and 20),
   owner_token uuid not null default gen_random_uuid(),                          -- مفتاح سري يرى به صاحب الطلب العروض
-  status text not null default 'open' check (status in ('open','matched','closed'))
+  status text not null default 'pending' check (status in ('pending','open','matched','closed'))
 );
 alter table public.requests add column if not exists owner_token uuid not null default gen_random_uuid();
 create index if not exists requests_status_idx on public.requests(status, city);
@@ -95,7 +95,7 @@ alter table public.requests enable row level security;
 
 drop policy if exists "anyone submits a request" on public.requests;
 create policy "anyone submits a request" on public.requests
-  for insert with check (status = 'open');
+  for insert with check (status = 'pending');   -- لا يظهر إلا بعد موافقة المدير
 -- ملاحظة: owner_token يولّده المتصفح ويحتفظ به صاحب الطلب، ولا يظهر في اللوحة العامة
 
 drop policy if exists "admins manage requests" on public.requests;
@@ -468,3 +468,10 @@ grant select, insert, update, delete on public.listings, public.requests, public
 -- تأكيد أخير: جدول المدراء مقفل
 alter table public.admins enable row level security;
 revoke all on public.admins from anon, authenticated, public;
+
+-- الطلبات تحتاج موافقة المدير قبل الظهور (لترقية قاعدة موجودة)
+alter table public.requests drop constraint if exists requests_status_check;
+alter table public.requests add constraint requests_status_check check (status in ('pending','open','matched','closed'));
+alter table public.requests alter column status set default 'pending';
+drop policy if exists "anyone submits a request" on public.requests;
+create policy "anyone submits a request" on public.requests for insert with check (status = 'pending');
