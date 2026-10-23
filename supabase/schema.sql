@@ -10,6 +10,11 @@ create table if not exists public.admins (
   created_at timestamptz not null default now()
 );
 
+-- جدول المدراء مقفل تمامًا من الواجهة: لا يقرؤه ولا يكتب فيه أحد عبر الـ API
+-- (is_admin تعمل لأنها security definer، والإضافة تتم من SQL Editor بملف admin-setup.sql)
+alter table public.admins enable row level security;
+revoke all on public.admins from anon, authenticated, public;
+
 create or replace function public.is_admin()
 returns boolean language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.admins where user_id = auth.uid());
@@ -458,4 +463,8 @@ grant usage on all sequences in schema public to anon, authenticated;
 grant insert on public.listings, public.requests, public.offers, public.brokers to anon, authenticated;
 grant select on public.settings to anon, authenticated;
 grant select, insert, update, delete on public.listings, public.requests, public.offers, public.brokers,
-      public.settings, public.offer_ratings, public.admins to authenticated;   -- المدير فقط تسمح له السياسات
+      public.settings, public.offer_ratings to authenticated;   -- المدير فقط تسمح له السياسات
+
+-- تأكيد أخير: جدول المدراء مقفل
+alter table public.admins enable row level security;
+revoke all on public.admins from anon, authenticated, public;
