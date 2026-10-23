@@ -58,7 +58,7 @@ const LAND_FEATS=["كرن (زاوية)","على الكدرون (طريق معب�
 const NEGO="السعر قابل للتفاوض";
 const ADV_TXT=n=>n?(n===1?"مقدم شهر واحد":n===2?"مقدم شهرين":n===12?"مقدم سنة":`مقدم ${n} أشهر`):"";
 const fmt=n=>Math.round(Number(n)||0).toLocaleString("en-US");
-const esc=s=>{const d=document.createElement("div");d.textContent=s==null?"":String(s);return d.innerHTML};
+const esc=s=>(s==null?"":String(s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 const opts=(arr,all)=>(all?`<option value="">${all}</option>`:"")+arr.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("");
 function toast(t){let e=$("#toast");if(!e){e=document.createElement("div");e.id="toast";e.className="toast";document.body.appendChild(e)}e.textContent=t;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,3200)}
 // يقبل الرقم بأي صيغة: 36000000 أو 0022236000000 أو +222 36 00 00 00 — الرقم الموريتاني (8 أرقام) يُضاف له 222
@@ -130,7 +130,7 @@ function applySettings(st){if(!st)return;
   if(Array.isArray(st.focus_areas)){FOCUS_AREAS.splice(0,FOCUS_AREAS.length,...st.focus_areas.filter(a=>NKC_AREAS.includes(a)));
     const rest=NKC_AREAS.filter(a=>!FOCUS_AREAS.includes(a));NKC_AREAS.splice(0,NKC_AREAS.length,...FOCUS_AREAS,...rest)}
 }
-const uuid=()=>(window.crypto&&crypto.randomUUID)?crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==="x"?r:(r&3|8)).toString(16)});
+const uuid=()=>(window.crypto&&crypto.randomUUID)?crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=(window.crypto&&crypto.getRandomValues?crypto.getRandomValues(new Uint8Array(1))[0]:Math.random()*256)&15;return (c==="x"?r:(r&3|8)).toString(16)});
 let demoId=1000;
 
 // ---------- واجهة البيانات ----------
@@ -139,7 +139,7 @@ const API = {
   async listings(){
     if(DEMO) return DEMO_DB.listings.filter(l=>l.status==="approved");
     need();
-    const {data,error}=await sb.from("listings").select("*").eq("status","approved").order("featured",{ascending:false}).order("created_at",{ascending:false}).limit(500);
+    const {data,error}=await sb.from("listings_public").select("*").order("featured",{ascending:false}).order("created_at",{ascending:false}).limit(500);
     if(error) throw error; return data;
   },
   async publicRequests(){

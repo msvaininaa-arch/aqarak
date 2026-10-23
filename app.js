@@ -43,7 +43,7 @@ const CORNER="كرن (زاوية)",ROAD="على الكدرون (طريق معب�
 $$("[data-ic]").forEach(s=>s.innerHTML=ic(s.dataset.ic,22));
 const {FEAT,COMMISSIONS}=window.AQ;
 const applyGates=()=>$$("[data-feature]").forEach(el=>el.hidden=!FEAT(el.dataset.feature));applyGates();
-$$("select[name=commission]").forEach(s=>s.innerHTML=`<option value="">—</option>`+COMMISSIONS.map(c=>`<option>${esc(c)}</option>`).join(""));
+$$("select[name=commission]").forEach(s=>s.innerHTML=`<option value="">—</option>`+COMMISSIONS.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join(""));
 const svcText=x=>PLATFORM?waLink(PLATFORM,x):"#";
 
 /* ---------- helpers ---------- */
@@ -296,7 +296,7 @@ async function renderMine(){
         <span>${o.verified_broker?`<span class="badge vb">✓ ${t("سمسار موثّق")}</span> `:""}${FEAT("COMMISSION")&&o.commission?`<span class="badge">${t("العمولة")}: ${esc(t(o.commission))}</span> `:""}${o.name?`<b>${esc(o.name)}</b> · `:""}${esc(o.message)}${o.listing_id?` · <a href="#l-${o.listing_id}" data-item-link="${o.listing_id}">${t("رقم العقار")} ${o.listing_id}</a>`:""}</span>
         <span class="row">${o.price?`<b style="color:var(--brand)">${fmt(o.price)} ${t("أوقية")}</b>`:""}<a class="btn small" href="${waLink(o.whatsapp,"السلام عليكم، بخصوص عرضك على طلبي في عقارك")}" target="_blank" rel="noopener">${t("تواصل")}</a></span></div>`).join("")
         :`<div class="alt" style="margin-top:6px">${t("لم تصل عروض بعد. سنرسل طلبك للسماسرة، وتظهر العروض هنا.")}</div>`}
-      ${FEAT("RATINGS")&&offers.length?`<div class="rate"><span class="alt">${t("تعاملت مع أحدهم؟ قيّمه ليعرف غيرك:")}</span>${offers.map(o=>`<div class="row" data-rate="${o.id}" data-token="${esc(m.token)}"><span>${esc(o.name||t("صاحب العرض"))}</span>${[1,2,3,4,5].map(n=>`<button type="button" class="star" data-stars="${n}" aria-label="${n}">★</button>`).join("")}</div>`).join("")}</div>`:""}
+      ${FEAT("RATINGS")&&offers.length&&req&&req.status!=="open"?`<div class="rate"><span class="alt">${t("تعاملت مع أحدهم؟ قيّمه ليعرف غيرك:")}</span>${offers.map(o=>`<div class="row" data-rate="${o.id}" data-token="${esc(m.token)}"><span>${esc(o.name||t("صاحب العرض"))}</span>${[1,2,3,4,5].map(n=>`<button type="button" class="star" data-stars="${n}" aria-label="${n}">★</button>`).join("")}</div>`).join("")}</div>`:""}
       <div class="row" style="margin-top:8px"><button class="btn small ghost" data-copylink="${esc(link)}">${t("انسخ رابط طلبك الخاص")}</button></div></div>`;
   }));
   box.innerHTML=parts.join("");

@@ -248,7 +248,7 @@
       <label><input type="radio" name="kind" value="invest"><span>فرصة استثمارية</span></label>
     </div>
     <label>نوع العقار<select name="ptype"></select></label>
-    <label>المدة<select name="duration"><option>شهري</option><option>سنوي</option><option>يومي</option></select></label>
+    <label>المدة<select name="duration"><option value="شهري">شهري</option><option value="سنوي">سنوي</option><option value="يومي">يومي</option></select></label>
     <label>المدينة<select name="city" id="rCity"></select></label>
     <label id="rAreaWrap">الحي<select name="area" id="rArea"></select></label>
     <label>عدد الغرف<input name="rooms" type="number" min="0" max="30" value="2"></label>
@@ -282,7 +282,7 @@
     <label>السعر (أوقية جديدة)<input name="price" type="number" inputmode="numeric" min="0" required></label>
     <label>عدد الغرف<input name="rooms" type="number" min="0" max="30" value="2"></label>
     <label>المساحة (م²)<input name="size_m2" type="number" min="0"></label>
-    <label>الوثيقة<select name="title_doc"><option value="">—</option><option>سند عقاري</option><option>ترخيص</option></select></label>
+    <label>الوثيقة<select name="title_doc"><option value="">—</option><option value="سند عقاري">سند عقاري</option><option value="ترخيص">ترخيص</option></select></label>
     <label data-feature="COMMISSION" hidden>عمولة السمسار<select name="commission"></select></label>
     <label>المقدم المطلوب<select name="advance_months"><option value="">—</option><option value="1">شهر واحد</option><option value="2">شهران</option><option value="3">3 أشهر</option><option value="6">6 أشهر</option><option value="12">سنة</option></select></label>
     <div class="full checks"><label><input type="checkbox" name="furnished"> مفروش</label><label><input type="checkbox" name="solar"> بلا انقطاع (شمسي/بطارية)</label></div>

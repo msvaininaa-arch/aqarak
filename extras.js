@@ -55,7 +55,7 @@ async function statusImage(o){
   x.font=`500 34px ${body}`;x.globalAlpha=.9;x.fillText(fr?"Immobilier en Mauritanie et ailleurs":"عقارات موريتانيا وخارجها · أوجد منزلك",W/2,210);x.globalAlpha=1;
   // الوسم
   x.font=`700 40px ${body}`;const tw=x.measureText(o.tag).width+70;x.fillStyle="#B35300";
-  x.beginPath();x.roundRect((W-tw)/2,520,tw,72,36);x.fill();x.fillStyle="#fff";x.fillText(o.tag,W/2,570);
+  x.beginPath();if(x.roundRect)x.roundRect((W-tw)/2,520,tw,72,36);else{const X0=(W-tw)/2,Y0=520,r=36;x.moveTo(X0+r,Y0);x.arcTo(X0+tw,Y0,X0+tw,Y0+72,r);x.arcTo(X0+tw,Y0+72,X0,Y0+72,r);x.arcTo(X0,Y0+72,X0,Y0,r);x.arcTo(X0,Y0,X0+tw,Y0,r);x.closePath()}x.fill();x.fillStyle="#fff";x.fillText(o.tag,W/2,570);
   // العنوان
   x.fillStyle="#151532";x.font=`700 60px ${disp}`;let y=720;for(const l of wrap(x,o.title,W-220).slice(0,3)){x.fillText(l,W/2,y);y+=82}
   // السعر

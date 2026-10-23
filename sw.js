@@ -8,8 +8,10 @@ self.addEventListener("fetch",e=>{
   if(r.method!=="GET")return;
   if(/supabase\.co$/.test(u.hostname))return;                 // البيانات الحية لا تُخزَّن أبدًا
   if(r.mode==="navigate"){                                       // الصفحة: الشبكة أولًا، ثم النسخة المحفوظة
-    e.respondWith(fetch(r).then(res=>{const cp=res.clone();caches.open(V).then(c=>c.put("index.html",cp));return res}).catch(()=>caches.match("index.html")));return}
-  const cacheable=u.origin===location.origin||/^(fonts\.googleapis\.com|fonts\.gstatic\.com|unpkg\.com|cdn\.jsdelivr\.net)$/.test(u.hostname)||/tile\.openstreetmap\.org$/.test(u.hostname);
+    // نحفظ الصفحة الرئيسية فقط، وفقط إن نجح تحميلها (لا لوحة الإدارة ولا صفحة 404)
+    const home=/\/(index\.html)?$/.test(u.pathname);
+    e.respondWith(fetch(r).then(res=>{if(home&&res.ok){const cp=res.clone();caches.open(V).then(c=>c.put("index.html",cp))}return res}).catch(()=>caches.match("index.html")));return}
+  const cacheable=u.origin===location.origin||/^(fonts\.googleapis\.com|fonts\.gstatic\.com|unpkg\.com|cdn\.jsdelivr\.net)$/.test(u.hostname); // صور الخريطة لا تُحفظ (تملأ ذاكرة الهاتف)
   if(!cacheable)return;
   e.respondWith(caches.open(V).then(async c=>{const hit=await c.match(r);
     const net=fetch(r).then(res=>{if(res.ok||res.type==="opaque")c.put(r,res.clone());return res}).catch(()=>hit);

@@ -139,6 +139,7 @@ create view public.requests_public as
          r.move_in, r.furnished, r.solar, r.advance_max, r.residence, r.notes,
          (select count(*) from public.offers o where o.request_id = r.id and o.status <> 'hidden')::int as offers_count
   from public.requests r where r.status = 'open' and r.created_at > now() - interval '60 days';   -- الطلبات الأقدم من 60 يومًا تختفي تلقائيًا
+revoke all on public.requests_public from anon, authenticated, public;
 grant select on public.requests_public to anon, authenticated;
 
 -- صاحب الطلب يرى طلبه والعروض التي وصلته بمفتاحه السري فقط
@@ -331,8 +332,8 @@ create or replace function public.rate_offer(p_token uuid, p_offer bigint, p_sta
 returns void language plpgsql security definer set search_path = public as $$
 begin
   if not exists (select 1 from public.offers o join public.requests r on r.id = o.request_id
-                 where o.id = p_offer and r.owner_token = p_token) then
-    raise exception 'not_your_offer';
+                 where o.id = p_offer and r.owner_token = p_token and r.status <> 'open') then
+    raise exception 'not_your_offer';  -- التقييم بعد أن يعلّم المدير الطلب «وُجد عرض» أو «مغلق»
   end if;
   insert into public.offer_ratings (offer_id, stars, comment) values (p_offer, p_stars, p_comment);
 end $$;
@@ -345,6 +346,7 @@ create view public.brokers_public as
          (select round(avg(x.stars)::numeric, 1) from public.offer_ratings x join public.offers o on o.id = x.offer_id where o.whatsapp = b.whatsapp) as rating_avg,
          (select count(*) from public.offer_ratings x join public.offers o on o.id = x.offer_id where o.whatsapp = b.whatsapp)::int as rating_count
   from public.brokers b where b.verified;
+revoke all on public.brokers_public from anon, authenticated, public;
 grant select on public.brokers_public to anon, authenticated;
 
 
@@ -390,3 +392,60 @@ create or replace function public.aq_confirm_now() returns trigger
 language plpgsql as $$ begin if not public.is_admin() then new.confirmed_at := now(); end if; return new; end $$;
 drop trigger if exists aq_confirm_now on public.listings;
 create trigger aq_confirm_now before insert on public.listings for each row execute function public.aq_confirm_now();
+
+
+-- =====================================================================
+-- تقوية الحماية (بعد المراجعة المستقلة)
+-- =====================================================================
+-- 1) الوقت والعدّادات يضعها الخادم، لا المتصفح (تمنع تجاوز حدود الإغراق وتزوير «الأحدث»)
+create or replace function public.aq_server_fields() returns trigger
+language plpgsql as $$
+begin
+  if public.is_admin() then return new; end if;
+  new.created_at := now();
+  if tg_table_name = 'listings' then new.views := 0; new.confirmed_at := now(); end if;
+  return new;
+end $$;
+drop trigger if exists aa_server_fields on public.listings;
+create trigger aa_server_fields before insert on public.listings for each row execute function public.aq_server_fields();
+drop trigger if exists aa_server_fields on public.requests;
+create trigger aa_server_fields before insert on public.requests for each row execute function public.aq_server_fields();
+drop trigger if exists aa_server_fields on public.offers;
+create trigger aa_server_fields before insert on public.offers for each row execute function public.aq_server_fields();
+drop trigger if exists aa_server_fields on public.brokers;
+create trigger aa_server_fields before insert on public.brokers for each row execute function public.aq_server_fields();
+
+-- 2) الزوار لا يقرؤون جدول العقارات مباشرة: يقرؤون عرضًا عامًا بلا أرقام المالكين
+--    (رقم التواصل يظهر فقط إن كان لسمسار موثّق، فأرقامهم علنية أصلًا)
+drop policy if exists "public reads approved listings" on public.listings;
+drop view if exists public.listings_public;
+create view public.listings_public as
+  select l.id, l.created_at, l.kind, l.ptype, l.country, l.city, l.area, l.title, l.description, l.price, l.rooms, l.size_m2,
+         l.furnished, l.solar, l.title_doc, l.advance_months, l.features, l.lat, l.lng, l.photos, l.featured, l.views, l.status,
+         l.commission, l.confirmed_at,
+         (select b.whatsapp from public.brokers b where b.verified and b.whatsapp = l.contact_whatsapp limit 1) as contact_whatsapp
+  from public.listings l where l.status = 'approved';
+revoke all on public.listings_public from anon, authenticated, public;
+grant select on public.listings_public to anon, authenticated;
+
+-- 3) الزوار لا يقرؤون جدول السماسرة مباشرة (يقرؤون brokers_public فقط)
+drop policy if exists "public reads verified brokers" on public.brokers;
+
+-- 4) عروض صاحب الطلب تعيد العمولة أيضًا
+drop function if exists public.my_offers(uuid);
+create or replace function public.my_offers(p_token uuid)
+returns table (id bigint, created_at timestamptz, price numeric, message text, name text, whatsapp text, listing_id bigint, verified_broker boolean, commission text)
+language sql stable security definer set search_path = public as $$
+  select o.id, o.created_at, o.price, o.message, o.name, o.whatsapp, o.listing_id,
+         exists (select 1 from public.brokers b where b.verified and b.whatsapp = o.whatsapp) as verified_broker, o.commission
+  from public.offers o join public.requests r on r.id = o.request_id
+  where r.owner_token = p_token and o.status <> 'hidden' order by o.created_at desc;
+$$;
+grant execute on function public.my_offers(uuid) to anon, authenticated;
+
+-- 5) عدّاد المشاهدات للعقارات المنشورة فقط
+create or replace function public.add_view(p_id bigint)
+returns void language sql security definer set search_path = public as $$
+  update public.listings set views = views + 1 where id = p_id and status = 'approved';
+$$;
+grant execute on function public.add_view(bigint) to anon, authenticated;
