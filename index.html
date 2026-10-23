@@ -166,6 +166,18 @@
     <p class="alt" style="margin-top:10px">تعاملت مع سمسار وأساء؟ <a href="#" id="reportBroker">أبلغنا</a></p>
   </section>
 
+  <section class="band" id="plans" data-feature="SUBSCRIPTIONS" hidden>
+    <h2>اشتراك السماسرة</h2>
+    <p class="lead">التسجيل مجاني دائمًا. والاشتراك لمن يريد عملًا أكثر.</p>
+    <div class="plans" id="planBox"></div>
+  </section>
+
+  <section class="band" id="priceIndex" data-feature="PRICE_INDEX" hidden>
+    <h2>مؤشر الإيجار في الأحياء</h2>
+    <p class="lead">متوسط الإيجار الشهري من العروض المنشورة في الموقع. تقريبي، ويتحسن كلما زادت العروض.</p>
+    <div class="tablewrap"><table id="idxTbl"></table></div>
+  </section>
+
   <section class="band" id="services">
     <h2>خدمات عقارك</h2>
     <p class="lead">خدمات تكمّل بحثك أو عقارك. المس الخدمة لتعرف تفاصيلها، ثم اطلبها على واتساب.</p>
@@ -271,6 +283,7 @@
     <label>عدد الغرف<input name="rooms" type="number" min="0" max="30" value="2"></label>
     <label>المساحة (م²)<input name="size_m2" type="number" min="0"></label>
     <label>الوثيقة<select name="title_doc"><option value="">—</option><option>سند عقاري</option><option>ترخيص</option></select></label>
+    <label data-feature="COMMISSION" hidden>عمولة السمسار<select name="commission"></select></label>
     <label>المقدم المطلوب<select name="advance_months"><option value="">—</option><option value="1">شهر واحد</option><option value="2">شهران</option><option value="3">3 أشهر</option><option value="6">6 أشهر</option><option value="12">سنة</option></select></label>
     <div class="full checks"><label><input type="checkbox" name="furnished"> مفروش</label><label><input type="checkbox" name="solar"> بلا انقطاع (شمسي/بطارية)</label></div>
     <div class="full"><div style="font-size:13px;color:var(--muted);margin-bottom:4px">مميزات يسأل عنها الناس</div><div class="checks featbox" id="featBox"></div></div>
@@ -293,6 +306,7 @@
     <label class="full">تفاصيل العرض<textarea name="message" rows="3" required minlength="3" maxlength="1000" placeholder="مثال: شقة 3 غرف في تفرغ زينة، طابق أول، قريبة من الشارع"></textarea></label>
     <label>السعر (أوقية)<input name="price" type="number" inputmode="numeric" min="0"></label>
     <label>رقم العقار في الموقع (إن وجد)<input name="listing_id" type="number" min="1"></label>
+    <label data-feature="COMMISSION" hidden>عمولتك<select name="commission"></select></label>
     <label>الاسم<input name="name" maxlength="80"></label>
     <label>رقم واتساب (مع رمز الدولة)<input name="whatsapp" inputmode="tel" type="tel" autocomplete="tel" required></label>
   </div>

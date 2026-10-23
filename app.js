@@ -41,6 +41,9 @@ function renderTiles(){const sale=isSale(),T=sale?SALE_TILES:TILES;
   $$("[data-sf]").forEach(b=>b.setAttribute("aria-pressed",!!S[b.dataset.sf]));}
 const CORNER="كرن (زاوية)",ROAD="على الكدرون (طريق معبّد)";
 $$("[data-ic]").forEach(s=>s.innerHTML=ic(s.dataset.ic,22));
+const {FEAT,COMMISSIONS}=window.AQ;
+const applyGates=()=>$$("[data-feature]").forEach(el=>el.hidden=!FEAT(el.dataset.feature));applyGates();
+$$("select[name=commission]").forEach(s=>s.innerHTML=`<option value="">—</option>`+COMMISSIONS.map(c=>`<option>${esc(c)}</option>`).join(""));
 const svcText=x=>PLATFORM?waLink(PLATFORM,x):"#";
 
 /* ---------- helpers ---------- */
@@ -74,6 +77,7 @@ function matches(i){
   if(S.water&&!feats(i).some(f=>f==="ماء"||f==="خزان ماء"))return false;
   if(S.q&&!qMatch(textOf(i),S.q))return false;
   if(!inBounds(i))return false;
+  if(FEAT("FRESHNESS")&&i.confirmed_at&&Date.now()-new Date(i.confirmed_at)>30*864e5)return false;
   return true;
 }
 const label=i=>i.kind==="land"?(i.size_m2?fmt(i.size_m2)+" "+t("م²"):t("أرض")):t(i.ptype||"شقة")+(i.kind==="daily"?" · "+t("يومي"):"");
@@ -86,7 +90,7 @@ function cardHTML(i){
       <div class="badges">${vbOf(i.contact_whatsapp)?`<span class="badge vb">✓ ${t("سمسار موثّق")}</span>`:""}${i.featured?`<span class="badge or">${t("مميّز")}</span>`:''}${i.solar?`<span class="badge sun">${t("بلا انقطاع")}</span>`:''}${i.title_doc==="سند عقاري"?`<span class="badge ok">${t("سند عقاري")}</span>`:''}<span class="badge">${place(i)}</span></div>
       <span class="phl">${esc(label(i))}</span></div>
     <div class="cbody">${priceHTML(i.price,i.kind)}
-      <p class="title">${esc(i.title)}</p>${i.created_at?`<span class="when">${since(i.created_at)}</span>`:""}
+      <p class="title">${esc(i.title)}</p>${FEAT("FRESHNESS")&&i.confirmed_at?`<span class="when">✓ ${t("تأكّد")} ${since(i.confirmed_at)}</span>`:i.created_at?`<span class="when">${since(i.created_at)}</span>`:""}${FEAT("COMMISSION")&&i.commission?`<span class="when">${t("العمولة")}: ${esc(t(i.commission))}</span>`:""}
       <div class="facts">${i.kind!=="land"&&i.ptype!=="محل"&&i.rooms?`<span>${roomsTxt(i.rooms)}</span>`:""}${i.furnished?`<span>${t("مفروش")}</span>`:""}${i.title_doc?`<span>${esc(t(i.title_doc))}</span>`:""}${i.kind==="rent"&&i.advance_months?`<span class="adv">${t(ADV_TXT(i.advance_months))}</span>`:""}${feats(i).filter(x=>x!==NEGO).slice(0,2).map(x=>`<span>${esc(t(x))}</span>`).join("")}${feats(i).includes(NEGO)?`<span class="nego">${t("قابل للتفاوض")}</span>`:""}</div>
       ${fairRange(i)}</div></article>`;
 }
@@ -266,6 +270,7 @@ function openOffer(id){
 $("#offerForm").addEventListener("submit",async e=>{
   e.preventDefault();const f=e.target,btn=f.querySelector("[type=submit]");if(!guardOK(f))return;
   const o={request_id:Number(f.request_id.value),price:Number(f.price.value)||null,message:f.message.value.trim(),name:f.name.value.trim()||null,whatsapp:cleanPhone(f.whatsapp.value),listing_id:Number(f.listing_id.value)||null};
+  if(FEAT("COMMISSION")&&f.commission.value)o.commission=f.commission.value;
   if(o.message.length<3){toast(t("اكتب تفاصيل العرض"));return}
   if(o.whatsapp.length<6){toast(t("اكتب رقم واتساب صحيحًا مع رمز الدولة"));return}
   btn.disabled=true;
@@ -288,9 +293,10 @@ async function renderMine(){
     const link=location.origin+location.pathname+"?my="+m.token;
     return `<div class="box" style="margin:0"><div class="row" style="justify-content:space-between"><b>${esc(m.label)}</b><span class="alt">${req&&req.status!=="open"?t("مغلق"):""}</span></div>
       ${offers.length?offers.map(o=>`<div class="offer" style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg);border-radius:10px;padding:8px 10px;margin-top:8px">
-        <span>${o.verified_broker?`<span class="badge vb">✓ ${t("سمسار موثّق")}</span> `:""}${o.name?`<b>${esc(o.name)}</b> · `:""}${esc(o.message)}${o.listing_id?` · <a href="#l-${o.listing_id}" data-item-link="${o.listing_id}">${t("رقم العقار")} ${o.listing_id}</a>`:""}</span>
+        <span>${o.verified_broker?`<span class="badge vb">✓ ${t("سمسار موثّق")}</span> `:""}${FEAT("COMMISSION")&&o.commission?`<span class="badge">${t("العمولة")}: ${esc(t(o.commission))}</span> `:""}${o.name?`<b>${esc(o.name)}</b> · `:""}${esc(o.message)}${o.listing_id?` · <a href="#l-${o.listing_id}" data-item-link="${o.listing_id}">${t("رقم العقار")} ${o.listing_id}</a>`:""}</span>
         <span class="row">${o.price?`<b style="color:var(--brand)">${fmt(o.price)} ${t("أوقية")}</b>`:""}<a class="btn small" href="${waLink(o.whatsapp,"السلام عليكم، بخصوص عرضك على طلبي في عقارك")}" target="_blank" rel="noopener">${t("تواصل")}</a></span></div>`).join("")
         :`<div class="alt" style="margin-top:6px">${t("لم تصل عروض بعد. سنرسل طلبك للسماسرة، وتظهر العروض هنا.")}</div>`}
+      ${FEAT("RATINGS")&&offers.length?`<div class="rate"><span class="alt">${t("تعاملت مع أحدهم؟ قيّمه ليعرف غيرك:")}</span>${offers.map(o=>`<div class="row" data-rate="${o.id}" data-token="${esc(m.token)}"><span>${esc(o.name||t("صاحب العرض"))}</span>${[1,2,3,4,5].map(n=>`<button type="button" class="star" data-stars="${n}" aria-label="${n}">★</button>`).join("")}</div>`).join("")}</div>`:""}
       <div class="row" style="margin-top:8px"><button class="btn small ghost" data-copylink="${esc(link)}">${t("انسخ رابط طلبك الخاص")}</button></div></div>`;
   }));
   box.innerHTML=parts.join("");
@@ -380,7 +386,11 @@ function done(title,text,wa){
   if(!$("#dlgItem").open)$("#dlgItem").showModal();
 }
 
-const sendErr=err=>t(/too_many/.test(String(err&&(err.message||err)))?"أرسلت كثيرًا في وقت قصير، حاول بعد قليل":!navigator.onLine?"لا يوجد اتصال بالإنترنت، أرسل حين يعود":"تعذّر الإرسال، حاول مرة أخرى");
+const sendErr=err=>t(/plan_limit/.test(String(err&&(err.message||err)))?"وصلت إلى حد العروض المجانية اليوم. اشترك لعروض بلا حد":/too_many/.test(String(err&&(err.message||err)))?"أرسلت كثيرًا في وقت قصير، حاول بعد قليل":!navigator.onLine?"لا يوجد اتصال بالإنترنت، أرسل حين يعود":"تعذّر الإرسال، حاول مرة أخرى");
+/* تقييم السمسار (مطفأ حتى تفعيله) */
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-stars]");if(!b)return;const row=b.closest("[data-rate]");
+  try{await API.rateOffer(row.dataset.token,Number(row.dataset.rate),Number(b.dataset.stars),null);row.innerHTML=`<span class="ok">✓ ${t("شكرًا، وصل تقييمك")}</span>`}
+  catch(err){console.error(err);toast(t(/already|duplicate|unique/i.test(String(err&&err.message))?"قيّمت هذا العرض من قبل":"تعذّر الإرسال، حاول مرة أخرى"))}});
 /* request */
 $("#reqForm").addEventListener("submit",async e=>{
   e.preventDefault();const f=e.target,btn=f.querySelector("[type=submit]");if(!guardOK(f))return;
@@ -439,9 +449,10 @@ $("#addForm").addEventListener("submit",async e=>{
   const files=[...f.photos.files].slice(0,6);
   const o={kind:f.kind.value,ptype:f.kind.value==="land"?"أرض":f.ptype.value,city:f.city.value,country:countryOf(f.city.value),area:f.city.value==="نواكشوط"?(f.area.value||null):null,
     title:f.title.value.trim(),price:Number(f.price.value)||0,rooms:Number(f.rooms.value)||null,size_m2:Number(f.size_m2.value)||null,title_doc:f.title_doc.value||null,
-    furnished:f.furnished.checked,solar:f.solar.checked,advance_months:(f.kind.value==="rent"&&Number(f.advance_months.value))||null,features:[...f.querySelectorAll("[name=feat]:checked")].map(x=>x.value).filter(v=>f.kind.value==="land"?LAND_FEATS.includes(v)||v===NEGO:HOME_FEATS.includes(v)||v===NEGO),description:f.description.value.trim()||null,contact_name:f.contact_name.value.trim()||null,
+    furnished:f.furnished.checked,solar:f.solar.checked,advance_months:(f.kind.value==="rent"&&Number(f.advance_months.value))||null,features:[...f.querySelectorAll("[name=feat]:checked")].map(x=>x.value).filter(v=>f.kind.value==="land"?LAND_FEATS.includes(v)||v===NEGO:HOME_FEATS.includes(v)||v===NEGO),commission:FEAT("COMMISSION")&&f.commission.value?f.commission.value:undefined,description:f.description.value.trim()||null,contact_name:f.contact_name.value.trim()||null,
     contact_whatsapp:cleanPhone(f.contact_whatsapp.value),lat:PICKED?PICKED.lat:null,lng:PICKED?PICKED.lng:null,photos:[]};
   if(o.contact_whatsapp.length<6){toast(t("اكتب رقم واتساب صحيحًا مع رمز الدولة"));return}
+  if(o.commission===undefined)delete o.commission;
   const label0=btn.textContent;btn.disabled=true;btn.textContent="…";
   try{
     for(const file of files)o.photos.push(await API.uploadPhoto(file));
@@ -528,6 +539,8 @@ async function load(){
   if(BROKEN){toast("تعذّر الاتصال بالخادم. تحقق من الإنترنت ثم أعد تحميل الصفحة.")}
   const my=new URLSearchParams(location.search).get("my");
   if(my&&/^[0-9a-f-]{36}$/i.test(my)){addMy(my,"طلبي");try{history.replaceState(null,"",location.pathname)}catch(_){}}
+  try{window.AQ.applySettings(await API.settings())}catch(err){console.error(err)}
+  applyGates();document.dispatchEvent(new Event("aq-settings"));
   fillSelects();initMap();
   try{LIST=await API.listings()}catch(err){console.error(err);toast(t("تعذّر تحميل العقارات"))}
   try{REQS=await API.publicRequests()}catch(err){console.error(err)}

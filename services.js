@@ -1,7 +1,7 @@
 // عقارك — الخدمات (مبنية على مشاكل قائمة في موريتانيا) + أدوات الانتشار
 (function(){
 const A=window.AQAPP,{CFG,$,$$,esc,fmt,toast,cleanPhone,waLink,ic}=window.AQ;if(!A)return;
-const t=s=>A.t(s),PLATFORM=cleanPhone(CFG.PLATFORM_WHATSAPP),SITE=()=>(CFG.SITE_URL||location.origin+location.pathname).replace(/index\.html$/,"");
+const FEAT=window.AQ.FEAT,t=s=>A.t(s),PLATFORM=cleanPhone(CFG.PLATFORM_WHATSAPP),SITE=()=>(CFG.SITE_URL||location.origin+location.pathname).replace(/index\.html$/,"");
 
 /* ---------- الخدمات: كل خدمة تحل مشكلة موثقة ---------- */
 const SVC=[
@@ -17,6 +17,9 @@ const SVC=[
  {id:"manage",ico:"house",t:"إدارة عقار المغترب",s:"تأجير ومتابعة",
   why:"عقارات كثيرة لأهل الخارج تبقى فارغة أو يضيع إيجارها لغياب من يتابعها.",
   pts:["نؤجر عقارك لمستأجر موثوق بعقد مكتوب","نتابع الإيجار والصيانة","تقرير شهري بالصور على واتساب","نحوّل لك العائد بعملتك"]},
+ {id:"escrow",ico:"office",t:"أمانة العربون",s:"لا يضيع مالك",
+  why:"المشتري يخاف أن يدفع العربون فيضيع، والبائع يخاف أن يحجز له دون جدية.",
+  pts:["يودع المشتري العربون أمانة لدى شريك صرافة معروف","لا يُسلَّم للبائع إلا عند التوثيق لدى الموثّق","يُرد للمشتري إن ظهر في الوثيقة ما يمنع البيع","وديعة بلا فوائد، وبعقد مكتوب يوقعه الطرفان"]},
  {id:"power",ico:"store",t:"ماء وكهرباء بلا انقطاع",s:"شمسي وخزانات",
   why:"انقطاع الكهرباء متكرر، وإنتاج الماء في نواكشوط ثلث حاجة المدينة تقريبًا.",
   pts:["ألواح شمسية وبطاريات بأسعار المصدر","خزانات ماء ومضخات","العقار «بلا انقطاع» يؤجَّر أسرع وبسعر أعلى","نضع شارة «بلا انقطاع» على إعلانك بعد التركيب"]}
@@ -99,16 +102,31 @@ document.addEventListener("click",async e=>{
   if(e.target.closest("#installNo")){$("#installBar").hidden=true;try{localStorage.setItem("aq-noinstall","1")}catch(_){}}
 });
 
+/* ---------- اشتراك السماسرة (مخفي حتى تفعيله) ---------- */
+function renderPlans(){const box=$("#planBox");if(!box||!FEAT("SUBSCRIPTIONS"))return;const P=CFG.PLANS||{},n=Number(P.free_offers_per_day)||5;
+  const li=a=>a.map(x=>`<li>${esc(t(x))}</li>`).join("");
+  box.innerHTML=`<div class="plan"><h3>${t("مجاني")}</h3><p class="pp">0</p><ul>${li(["تصفّح كل الطلبات","شارة «موثّق» بعد التحقق"])}<li>${t("حتى")} ${n} ${t("عروض في اليوم")}</li></ul><button class="btn ghost" data-open="dlgBroker">${t("سجّل مجانًا")}</button></div>
+   <div class="plan pro"><h3>⭐ ${t("مشترك")}</h3><p class="pp">${esc(P.pro_price||t("تواصل معنا"))}</p><ul>${li(["عروض بلا حد على الطلبات","أولوية الظهور في «سماسرة موثوقون»","نرسل لك الطلبات الجديدة في أحيائك على واتساب","إعلان مميّز كل شهر","الدفع عبر بنكيلي أو مصرفي"])}</ul>
+   ${PLATFORM?`<a class="btn or" target="_blank" rel="noopener" href="${waLink(PLATFORM,"السلام عليكم، أريد الاشتراك كسمسار في عقارك.")}">${t("اشترك عبر واتساب")}</a>`:""}</div>`}
+/* ---------- مؤشر الإيجار (مخفي حتى تفعيله) ---------- */
+function renderIndex(){const tb=$("#idxTbl");if(!tb||!FEAT("PRICE_INDEX"))return;
+  const med=a=>{const b=a.slice().sort((x,y)=>x-y);return b.length?b[Math.floor(b.length/2)]:0};
+  const areas=window.AQ.NKC_AREAS,types=["شقة","دار","غرفة"];
+  const rows=areas.map(a=>({a,v:types.map(p=>{const xs=(A.list||[]).filter(i=>i.kind==="rent"&&i.city==="نواكشوط"&&i.area===a&&i.ptype===p).map(i=>Number(i.price));return xs.length>=2?med(xs):null})})).filter(r=>r.v.some(Boolean));
+  tb.innerHTML=`<tr><th>${t("الحي")}</th>${types.map(p=>`<th>${esc(t(p))}</th>`).join("")}</tr>`+(rows.length?rows.map(r=>`<tr><td>${esc(t(r.a))}</td>${r.v.map(v=>`<td>${v?fmt(v)+`<br><span class="alt">${t("بالقديمة")}: ${window.AQ.oldTxt(v)}</span>`:"—"}</td>`).join("")}</tr>`).join(""):`<tr><td colspan="4" class="alt">${t("لا توجد عروض كافية بعد.")}</td></tr>`)}
+document.addEventListener("aq-rendered",()=>{if(FEAT("PRICE_INDEX"))renderIndex()});
 /* ---------- سماسرة موثوقون ---------- */
 const since=d=>{try{return new Date(d).toLocaleDateString(document.documentElement.lang==="fr"?"fr-FR":"ar-EG-u-nu-latn",{month:"long",year:"numeric"})}catch(_){return ""}};
-function renderBrokers(){const box=$("#brokerList");if(!box)return;const L=A.brokers||[];
+const isPro=b=>FEAT("SUBSCRIPTIONS")&&b.plan==="pro"&&(!b.plan_until||new Date(b.plan_until)>new Date());
+function renderBrokers(){const box=$("#brokerList");if(!box)return;const L=(A.brokers||[]).slice().sort((a,b)=>(isPro(b)?1:0)-(isPro(a)?1:0));
   if(!L.length){box.innerHTML=`<div class="empty">${t("نعتمد أول السماسرة قريبًا.")} <button class="btn small" data-open="dlgBroker">${t("سجّل كسمسار")}</button></div>`;return}
   box.innerHTML=L.map(b=>`<div class="brcard"><span class="av" aria-hidden="true">${esc((b.name||"؟").trim()[0])}</span>
-    <div class="brinfo"><b>${esc(b.name)}</b><span class="badge vb">✓ ${t("موثّق منذ")} ${esc(since(b.verified_at))}</span>
+    <div class="brinfo"><b>${esc(b.name)}${isPro(b)?` <span class="badge or">⭐ ${t("مشترك")}</span>`:""}</b><span class="badge vb">✓ ${t("موثّق منذ")} ${esc(since(b.verified_at))}</span>${FEAT("RATINGS")&&b.rating_count?`<span class="stars">★ ${Number(b.rating_avg).toFixed(1)} <span class="alt">(${b.rating_count})</span></span>`:""}
     ${b.areas?`<span class="alt">${esc(b.areas)}</span>`:""}${b.about?`<span class="alt">${esc(b.about)}</span>`:""}${b.deals?`<span class="alt">${b.deals} ${t(b.deals>=3&&b.deals<=10?"صفقات عبر عقارك":"صفقة عبر عقارك")}</span>`:""}</div>
     <a class="btn small wa" target="_blank" rel="noopener" href="${waLink(b.whatsapp,"السلام عليكم، وجدتك في «سماسرة موثوقون» على عقارك.")}">${t("واتساب")}</a></div>`).join("")}
 $("#reportBroker").addEventListener("click",e=>{e.preventDefault();if(!PLATFORM){toast(t("أضف رقم واتساب المنصة في config.js لتفعيل الطلب."));return}
   window.open(waLink(PLATFORM,"السلام عليكم، أريد الإبلاغ عن سمسار. الاسم أو الرقم: "),"_blank","noopener")});
 document.addEventListener("aq-rendered",()=>{if(!renderBrokers.done&&(A.brokers||[]).length){renderBrokers.done=true;renderBrokers()}});
-renderSvc();renderBrokers();document.addEventListener("aq-lang",()=>{renderSvc();renderBrokers()});
+renderSvc();renderBrokers();renderPlans();renderIndex();document.addEventListener("aq-lang",()=>{renderSvc();renderBrokers();renderPlans();renderIndex()});
+document.addEventListener("aq-settings",()=>{renderSvc();renderBrokers();renderPlans();renderIndex()});
 })();

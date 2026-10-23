@@ -30,6 +30,16 @@ body.signin .hero .top{justify-content:center}
 .st{font-size:12px;font-weight:600;border-radius:99px;padding:2px 8px;background:var(--bg)}
 .st.pending,.st.open{background:var(--orange-soft);color:var(--orange-ink)} .st.approved,.st.matched{background:var(--ok-soft);color:var(--ok)}
 td .row{gap:6px}
+.setlist{display:grid;gap:8px}.setrow{display:flex;gap:10px;align-items:flex-start;background:var(--bg);border-radius:12px;padding:10px 12px;cursor:pointer}.setrow input{margin-top:4px;width:18px;height:18px}.setrow span{display:grid;gap:2px}.setrow small{color:var(--muted);font-size:12.5px}#settingsBox h4{margin:16px 0 8px}
+.smartgrid{display:grid;grid-template-columns:1.2fr 1fr;gap:12px}@media (max-width:900px){.smartgrid{grid-template-columns:1fr}}
+.card.pad{padding:14px 16px;cursor:default}.card.pad h3{margin:0 0 8px}.card.pad h4{margin:14px 0 6px;font-size:14px}
+.task{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--bg)}.task summary{cursor:pointer;padding:10px 12px;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.task .n{display:inline-grid;place-items:center;min-width:28px;height:28px;border-radius:99px;background:var(--orange-strong);color:var(--on-orange);font-size:13px}
+.tbody{padding:0 12px 10px;display:grid;gap:8px}.trow{display:grid;gap:6px;border-top:1px dashed var(--line);padding-top:8px}.trow .row{gap:6px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.kpis div{background:var(--bg);border-radius:10px;padding:8px;font-size:12.5px;color:var(--muted);display:grid}
+.kpis b{font-family:var(--display);font-size:22px;color:var(--brand)}.kpis .tr{font-size:12px;font-weight:600;color:var(--ink)}
+table.mini th,table.mini td{padding:5px 8px;font-size:13px}.tips{margin:0;padding-inline-start:18px;display:grid;gap:4px;font-size:13.5px}.ok{color:var(--ok);font-weight:600}
+
 </style>
 </head>
 <body>
@@ -52,14 +62,18 @@ td .row{gap:6px}
   <div id="panel" hidden>
     <div class="stats" id="stats"></div>
     <div class="tabs" role="tablist" id="admTabs">
-      <button class="tab" data-t="pending" aria-selected="true">إعلانات تنتظر المراجعة</button>
+      <button class="tab" data-t="today" aria-selected="true">📋 اليوم</button>
+      <button class="tab" data-t="pending" aria-selected="false">إعلانات تنتظر المراجعة</button>
       <button class="tab" data-t="listings" aria-selected="false">كل الإعلانات</button>
       <button class="tab" data-t="requests" aria-selected="false">الطلبات</button>
       <button class="tab" data-t="offers" aria-selected="false">العروض على الطلبات</button>
       <button class="tab" data-t="brokers" aria-selected="false">السماسرة</button>
       <button class="tab" data-t="bulk" aria-selected="false">➕ إضافة سريعة</button>
+      <button class="tab" data-t="settings" aria-selected="false">⚙️ الإعدادات</button>
     </div>
-    <div class="tablewrap" id="tblWrap" style="margin-top:12px"><table id="tbl"></table></div>
+    <div id="today" style="margin-top:12px"></div>
+    <div id="settingsBox" class="box" hidden style="margin-top:12px"></div>
+    <div class="tablewrap" id="tblWrap" hidden style="margin-top:12px"><table id="tbl"></table></div>
     <div class="box" id="bulk" hidden style="margin-top:12px">
       <h3 style="margin:0 0 6px">إضافة عروض كثيرة دفعة واحدة</h3>
       <p class="alt" style="margin:0 0 8px">الصق سطرًا لكل عقار (من إكسل أو واتساب). افصل بين الخانات بعلامة | أو بالجدولة (Tab)، بهذا الترتيب:<br>
@@ -77,5 +91,6 @@ td .row{gap:6px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="common.js?v=2026.10.23"></script>
 <script src="admin.js?v=2026.10.23"></script>
+<script src="admin-smart.js?v=2026.10.23"></script>
 </body>
 </html>

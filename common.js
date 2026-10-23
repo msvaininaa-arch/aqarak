@@ -2,6 +2,8 @@
 (function(){
 const CFG = window.AQARAK_CONFIG || {};
 const DEMO = !(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY);
+const FEAT = k => !!(CFG.FEATURES && CFG.FEATURES[k]);   // ميزة مفعّلة؟
+const COMMISSIONS = ["بلا عمولة على الزبون","نصف شهر","شهر","2.5% من الثمن","بالاتفاق"];
 const BROKEN = !DEMO && !window.supabase;   // المفاتيح موجودة لكن مكتبة Supabase لم تُحمَّل (انقطاع إنترنت مثلًا)
 const sb = (!DEMO && window.supabase) ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY) : null;
 const need = ()=>{ if(!sb) throw new Error("تعذّر الاتصال بقاعدة البيانات"); };
@@ -86,7 +88,7 @@ const SAMPLE = [
  {kind:"land",ptype:"أرض",city:"أطار",area:"",title:"قطعة 500 م² قرب النخيل",price:600000,size_m2:500,title_doc:"ترخيص"},
  {kind:"rent",ptype:"شقة",city:"داكار",area:"",title:"شقة غرفتين، حي المرسى",price:29700,rooms:2},
  {kind:"rent",ptype:"غرفة",city:"دبي",area:"",title:"غرفة في سكن مشترك للموظفين",price:21600,rooms:1,furnished:true}
-].map((x,k)=>Object.assign({id:101+k,created_at:new Date().toISOString(),country:countryOf(x.city),photos:[],contact_whatsapp:"",status:"approved",furnished:false,solar:false,featured:false,description:"",features:[],advance_months:null},x));
+].map((x,k)=>Object.assign({id:101+k,created_at:new Date().toISOString(),country:countryOf(x.city),photos:[],contact_whatsapp:"",status:"approved",furnished:false,solar:false,featured:false,description:"",features:[],advance_months:null,confirmed_at:new Date(Date.now()-k*3*864e5).toISOString()},x));
 // ضغط الصورة قبل الرفع: أقصى ضلع 1600 بكسل، JPEG — يوفّر الإنترنت ويقبل صور الهواتف الكبيرة
 async function compress(file){
   try{
@@ -113,12 +115,21 @@ const SAMPLE_BROKERS=[
 ].map(b=>Object.assign({created_at:new Date(Date.now()-200*864e5).toISOString(),rating:0},b));
 // عرضان في الأمثلة يعرضهما سمسار موثّق
 SAMPLE[0].contact_whatsapp="22236112233";SAMPLE.find(x=>x.area==="تيارت").contact_whatsapp="22246223344";
-const DEMO_DB={listings:SAMPLE.slice(),requests:SAMPLE_REQ.slice().reverse(),brokers:SAMPLE_BROKERS.slice(),offers:[]};
+const demoSettings=(()=>{try{return JSON.parse(localStorage.getItem("aq-demo-settings")||"{}")}catch(_){return {}}})();
+const DEMO_DB={settings:demoSettings,listings:SAMPLE.slice(),requests:SAMPLE_REQ.slice().reverse(),brokers:SAMPLE_BROKERS.slice(),offers:[]};
 // رابط الدعوة: ?ref=رمز يُحفظ 30 يومًا ويُرفق بالطلبات والإعلانات والعروض
 (function(){try{const r=new URLSearchParams(location.search).get("ref");if(r&&/^[a-z0-9_-]{2,30}$/i.test(r))localStorage.setItem("aq-ref",JSON.stringify({r,at:Date.now()}))}catch(_){}})();
 const refOf=()=>{try{const o=JSON.parse(localStorage.getItem("aq-ref")||"null");return o&&Date.now()-o.at<30*864e5?o.r:null}catch(_){return null}};
 const myRef=()=>{try{return localStorage.getItem("aq-myref")}catch(_){return null}};
 const withRef=o=>{const r=refOf();return r&&r!==myRef()?Object.assign(o,{ref:r}):o};
+// دمج إعدادات قاعدة البيانات فوق config.js
+function applySettings(st){if(!st)return;
+  if(st.features&&typeof st.features==="object")CFG.FEATURES=Object.assign({},CFG.FEATURES||{},st.features);
+  if(Array.isArray(st.services))CFG.SERVICES=st.services;
+  if(st.plans&&typeof st.plans==="object")CFG.PLANS=Object.assign({},CFG.PLANS||{},st.plans);
+  if(Array.isArray(st.focus_areas)){FOCUS_AREAS.splice(0,FOCUS_AREAS.length,...st.focus_areas.filter(a=>NKC_AREAS.includes(a)));
+    const rest=NKC_AREAS.filter(a=>!FOCUS_AREAS.includes(a));NKC_AREAS.splice(0,NKC_AREAS.length,...FOCUS_AREAS,...rest)}
+}
 const uuid=()=>(window.crypto&&crypto.randomUUID)?crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==="x"?r:(r&3|8)).toString(16)});
 let demoId=1000;
 
@@ -166,8 +177,24 @@ const API = {
     if(DEMO){const l=DEMO_DB.listings.find(x=>x.id==id);if(l)l.views=(l.views||0)+1;return}
     if(sb) sb.rpc("add_view",{p_id:Number(id)}).then(()=>{},()=>{});
   },
+  // الإعدادات من قاعدة البيانات (يغيّرها المدير دون إعادة رفع الموقع)
+  async settings(){
+    if(DEMO) return DEMO_DB.settings;
+    need();const {data,error}=await sb.from("settings").select("key,value");if(error)throw error;
+    return Object.fromEntries((data||[]).map(r=>[r.key,r.value]));
+  },
+  async saveSetting(key,value){
+    if(DEMO){DEMO_DB.settings[key]=value;try{localStorage.setItem("aq-demo-settings",JSON.stringify(DEMO_DB.settings))}catch(_){}return}
+    need();const {error}=await sb.from("settings").upsert({key,value,updated_at:new Date().toISOString()});if(error)throw error;
+  },
+  async rateOffer(token,offerId,stars,comment){
+    if(DEMO){DEMO_DB.ratings=DEMO_DB.ratings||[];if(DEMO_DB.ratings.some(r=>r.offer_id===offerId))throw new Error("already");
+      const o=DEMO_DB.offers.find(x=>x.id===offerId);DEMO_DB.ratings.push({offer_id:offerId,stars,comment,whatsapp:o?cleanPhone(o.whatsapp):""});return}
+    need();const {error}=await sb.rpc("rate_offer",{p_token:token,p_offer:offerId,p_stars:stars,p_comment:comment||null});if(error)throw error;
+  },
   async verifiedBrokers(){
-    if(DEMO) return DEMO_DB.brokers.filter(b=>b.verified).map(({id_checked,phone_checked,met,rating,...b})=>b);
+    if(DEMO) return DEMO_DB.brokers.filter(b=>b.verified).map(({id_checked,phone_checked,met,rating,...b})=>{const rs=(DEMO_DB.ratings||[]).filter(r=>r.whatsapp===b.whatsapp);
+      return Object.assign(b,{rating_avg:rs.length?rs.reduce((x,r)=>x+r.stars,0)/rs.length:null,rating_count:rs.length})});
     need();const {data,error}=await sb.from("brokers_public").select("*").order("verified_at",{ascending:true}).limit(300);
     if(error) throw error; return data||[];
   },
@@ -211,5 +238,5 @@ const API = {
   }
 };
 
-window.AQ={FOCUS_AREAS,refOf,myRef,oldTxt,N,ALIAS,qMatch,HOME_FEATS,LAND_FEATS,NEGO,ADV_TXT,CFG,DEMO,BROKEN,API,photosOf,safeUrl,CITIES,NKC_AREAS,RESIDENCES,CUR_BY_RES,CUR_LABEL,KIND_LABEL,UNIT,PTYPES,cityInfo,countryOf,ic,typeKey,thumbBg,$,$$,fmt,esc,opts,toast,cleanPhone,waLink};
+window.AQ={applySettings,FEAT,COMMISSIONS,FOCUS_AREAS,refOf,myRef,oldTxt,N,ALIAS,qMatch,HOME_FEATS,LAND_FEATS,NEGO,ADV_TXT,CFG,DEMO,BROKEN,API,photosOf,safeUrl,CITIES,NKC_AREAS,RESIDENCES,CUR_BY_RES,CUR_LABEL,KIND_LABEL,UNIT,PTYPES,cityInfo,countryOf,ic,typeKey,thumbBg,$,$$,fmt,esc,opts,toast,cleanPhone,waLink};
 })();

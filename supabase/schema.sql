@@ -297,3 +297,96 @@ language sql stable security definer set search_path = public as $$
   where r.owner_token = p_token and o.status <> 'hidden' order by o.created_at desc;
 $$;
 grant execute on function public.my_offers(uuid) to anon, authenticated;
+
+
+-- =====================================================================
+-- ميزات جاهزة ومطفأة (تُشغَّل من FEATURES في config.js)
+-- =====================================================================
+-- العمولة المعلنة
+alter table public.listings add column if not exists commission text check (char_length(commission) <= 40);
+alter table public.offers   add column if not exists commission text check (char_length(commission) <= 40);
+-- تأكيد التوفر
+alter table public.listings add column if not exists confirmed_at timestamptz not null default now();
+-- اشتراك السمسار
+alter table public.brokers add column if not exists plan text not null default 'free' check (plan in ('free','pro'));
+alter table public.brokers add column if not exists plan_until timestamptz;
+drop policy if exists "anyone registers as broker" on public.brokers;
+create policy "anyone registers as broker" on public.brokers
+  for insert with check (verified = false and rating = 0 and deals = 0 and not id_checked and not phone_checked and not met
+                         and verified_at is null and plan = 'free' and plan_until is null);
+
+-- تقييم السمسار: صاحب الطلب وحده يقيّم، مرة واحدة لكل عرض
+create table if not exists public.offer_ratings (
+  id bigint generated always as identity primary key,
+  created_at timestamptz not null default now(),
+  offer_id bigint not null unique references public.offers(id) on delete cascade,
+  stars smallint not null check (stars between 1 and 5),
+  comment text check (char_length(comment) <= 200)
+);
+alter table public.offer_ratings enable row level security;
+drop policy if exists "admins manage ratings" on public.offer_ratings;
+create policy "admins manage ratings" on public.offer_ratings for all using (public.is_admin()) with check (public.is_admin());
+
+create or replace function public.rate_offer(p_token uuid, p_offer bigint, p_stars int, p_comment text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from public.offers o join public.requests r on r.id = o.request_id
+                 where o.id = p_offer and r.owner_token = p_token) then
+    raise exception 'not_your_offer';
+  end if;
+  insert into public.offer_ratings (offer_id, stars, comment) values (p_offer, p_stars, p_comment);
+end $$;
+grant execute on function public.rate_offer(uuid, bigint, int, text) to anon, authenticated;
+
+-- ما يراه الزوار من السمسار الموثّق، مع متوسط تقييمه واشتراكه
+drop view if exists public.brokers_public;
+create view public.brokers_public as
+  select b.id, b.name, b.whatsapp, b.cities, b.areas, b.about, b.deals, b.verified_at, b.plan, b.plan_until,
+         (select round(avg(x.stars)::numeric, 1) from public.offer_ratings x join public.offers o on o.id = x.offer_id where o.whatsapp = b.whatsapp) as rating_avg,
+         (select count(*) from public.offer_ratings x join public.offers o on o.id = x.offer_id where o.whatsapp = b.whatsapp)::int as rating_count
+  from public.brokers b where b.verified;
+grant select on public.brokers_public to anon, authenticated;
+
+
+-- =====================================================================
+-- الإعدادات: يغيّرها المدير من «⚙️ الإعدادات» فتظهر للزوار دون إعادة رفع
+-- =====================================================================
+create table if not exists public.settings (
+  key text primary key,
+  value jsonb not null,
+  updated_at timestamptz not null default now()
+);
+alter table public.settings enable row level security;
+drop policy if exists "public reads settings" on public.settings;
+create policy "public reads settings" on public.settings for select using (true);
+drop policy if exists "admins manage settings" on public.settings;
+create policy "admins manage settings" on public.settings for all using (public.is_admin()) with check (public.is_admin());
+insert into public.settings (key, value) values
+  ('features', '{"COMMISSION":false,"RATINGS":false,"FRESHNESS":false,"SUBSCRIPTIONS":false,"PRICE_INDEX":false}'),
+  ('services', '["doc"]'),
+  ('focus_areas', '["تفرغ زينة","لكصر","تيارت"]'),
+  ('plans', '{"pro_price":"","free_offers_per_day":5}')
+on conflict (key) do nothing;
+
+-- حدّ العروض اليومي للسمسار غير المشترك (يعمل فقط حين تُفعَّل SUBSCRIPTIONS)
+create or replace function public.aq_plan_guard() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare on_ boolean; lim int; n int;
+begin
+  if public.is_admin() then return new; end if;
+  select coalesce((value->>'SUBSCRIPTIONS')::boolean,false) into on_ from public.settings where key='features';
+  if not coalesce(on_,false) then return new; end if;
+  if exists (select 1 from public.brokers b where b.whatsapp = new.whatsapp and b.plan='pro' and (b.plan_until is null or b.plan_until > now())) then return new; end if;
+  select coalesce((value->>'free_offers_per_day')::int,5) into lim from public.settings where key='plans';
+  select count(*) into n from public.offers where whatsapp = new.whatsapp and created_at > now() - interval '1 day';
+  if n >= coalesce(lim,5) then raise exception 'plan_limit: حد العروض المجانية اليوم'; end if;
+  return new;
+end $$;
+drop trigger if exists aq_plan_guard_offers on public.offers;
+create trigger aq_plan_guard_offers before insert on public.offers for each row execute function public.aq_plan_guard();
+
+-- تاريخ التأكيد يضعه الخادم عند الإضافة، فلا يزوّره أحد
+create or replace function public.aq_confirm_now() returns trigger
+language plpgsql as $$ begin if not public.is_admin() then new.confirmed_at := now(); end if; return new; end $$;
+drop trigger if exists aq_confirm_now on public.listings;
+create trigger aq_confirm_now before insert on public.listings for each row execute function public.aq_confirm_now();
