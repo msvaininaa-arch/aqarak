@@ -449,3 +449,13 @@ returns void language sql security definer set search_path = public as $$
   update public.listings set views = views + 1 where id = p_id and status = 'approved';
 $$;
 grant execute on function public.add_view(bigint) to anon, authenticated;
+
+-- =====================================================================
+-- صلاحيات صريحة (لا نعتمد على إعدادات Supabase الافتراضية؛ الحماية الفعلية في سياسات RLS أعلاه)
+-- =====================================================================
+grant usage on schema public to anon, authenticated;
+grant usage on all sequences in schema public to anon, authenticated;
+grant insert on public.listings, public.requests, public.offers, public.brokers to anon, authenticated;
+grant select on public.settings to anon, authenticated;
+grant select, insert, update, delete on public.listings, public.requests, public.offers, public.brokers,
+      public.settings, public.offer_ratings, public.admins to authenticated;   -- المدير فقط تسمح له السياسات
