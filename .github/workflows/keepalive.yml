@@ -1,0 +1,21 @@
+# يبقي قاعدة Supabase المجانية مستيقظة: المشاريع المجانية تتوقف بعد أسبوع بلا نشاط.
+# أضف في إعدادات المستودع (Settings → Secrets and variables → Actions) سرّين:
+#   SUPABASE_URL  و  SUPABASE_ANON_KEY  (نفس القيم الموجودة في config.js)
+name: keepalive
+on:
+  schedule:
+    - cron: "17 6 * * *"   # كل يوم 06:17 بتوقيت غرينتش
+  workflow_dispatch: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        env:
+          URL: ${{ secrets.SUPABASE_URL }}
+          KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then echo "لم تُضف الأسرار بعد"; exit 0; fi
+          code=$(curl -s -o /dev/null -w "%{http_code}" "$URL/rest/v1/requests_public?select=id&limit=1" -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+          echo "Supabase status: $code"
+          test "$code" = "200"

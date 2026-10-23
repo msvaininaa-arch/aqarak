@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="canonical" href="https://msvaininaa-arch.github.io/aqarak/">
+<link rel="alternate" hreflang="ar" href="https://msvaininaa-arch.github.io/aqarak/">
+<meta property="og:url" content="https://msvaininaa-arch.github.io/aqarak/">
+<meta property="og:locale" content="ar_AR">
+<meta property="og:locale:alternate" content="fr_FR">
+<title>عقارك — عقارات موريتانيا وخارجها</title>
+<meta name="description" content="شقق ودور ومحلات للإيجار، وأراضٍ للبيع في نواكشوط ونواذيبو وكل مدن موريتانيا وخارجها. اطلب عقارك مجانًا وتصلك عروض السماسرة الموثوقين على واتساب.">
+<meta property="og:title" content="عقارك — عقارات موريتانيا وخارجها">
+<meta property="og:description" content="اطلب عقارك مجانًا، وتصلك عروض السماسرة الموثوقين على واتساب.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://msvaininaa-arch.github.io/aqarak/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#2E2AD6">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="عقارك">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+ {"@type":"WebSite","name":"عقارك","alternateName":"Aqarak","url":"https://msvaininaa-arch.github.io/aqarak/","inLanguage":["ar","fr"],
+  "description":"شقق ودور ومحلات للإيجار، وأراضٍ وبيوت للبيع في موريتانيا وخارجها. اطلب عقارك مجانًا وتصلك عروض السماسرة الموثوقين."},
+ {"@type":"RealEstateAgent","name":"عقارك","url":"https://msvaininaa-arch.github.io/aqarak/","logo":"https://msvaininaa-arch.github.io/aqarak/icon-512.png","image":"https://msvaininaa-arch.github.io/aqarak/og.png",
+  "areaServed":[{"@type":"Country","name":"Mauritania"},{"@type":"City","name":"Nouakchott"},{"@type":"City","name":"Nouadhibou"}]}
+]}
+</script>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alexandria:wght@600;700;800&family=Readex+Pro:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="styles.css?v=2026.10.23">
+</head>
+<body>
+<div class="installbar" id="installBar" hidden role="dialog" aria-label="تثبيت التطبيق"><span>ثبّت «عقارك» على شاشة هاتفك ليفتح كتطبيق.</span><button class="btn small" id="installYes" type="button">ثبّت</button><button class="btn ghost small" id="installNo" type="button">لاحقًا</button></div>
+<div class="offline" id="offBar" hidden role="status">لا يوجد اتصال بالإنترنت. تتصفح آخر نسخة محفوظة؛ أرسل طلبك حين يعود الاتصال.</div>
+<div class="demo" id="demoBar" hidden>وضع تجريبي: العروض أمثلة توضيحية، والبيانات لا تُحفظ. أضف مفاتيح Supabase في ملف config.js لتشغيل الموقع الحقيقي.</div>
+
+<header class="hero">
+<svg class="skyline" viewBox="0 0 1200 200" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><path d="M0 200V130h54V200z M58 200V150h38V200z M102 200V110h38V200z M146 200V70h38V200z M186 200V150h38V200z M228 200V150h64V200z M294 200V70h38V200z M336 200V70h38V200z M376 200V50h46V200z M428 200V150h72V200z M506 200V90h72V200z M580 200V150h46V200z M632 200V110h46V200z M682 200V70h46V200z M730 200V110h72V200z M808 200V150h46V200z M860 200V50h72V200z M934 200V150h54V200z M994 200V70h38V200z M1034 200V130h72V200z M1110 200V90h72V200z M1186 200V70h64V200z M760 200V60h14V200z M757 62h20v-6h-20z M767 56c-6 0-9-8 0-16c9 8 6 16 0 16z M790 200V140a40 40 0 0 1 80 0V200z "/></svg>
+<div class="wrap">
+  <div class="top">
+    <span class="row" style="gap:6px"><button id="langBtn" class="cur" type="button" aria-label="Français / عربي">FR</button><button class="cur" type="button" data-sharesite aria-label="شارك الموقع">↗ شارك</button></span>
+    <label class="curlbl">العملة <select id="cur" class="cur"></select></label>
+  </div>
+  <a class="brand" href="./">
+    <svg width="44" height="44" viewBox="0 0 40 40" aria-hidden="true"><path d="M6 19 20 7l14 12v14a2 2 0 0 1-2 2h-8v-9h-8v9H8a2 2 0 0 1-2-2z" fill="#fff"/><circle cx="31" cy="9" r="4" fill="#F5A040"/></svg>
+    <span><b id="siteName">عقارك</b><small id="siteTag">عقارات موريتانيا وخارجها · أوجد منزلك</small></span>
+  </a>
+  <div class="roofwrap">
+    <svg class="rooftop" viewBox="0 0 400 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0 80 L183 7 Q200 0 217 7 L400 80 Z"/></svg>
+    <div class="roof">
+      <h1 class="hello">مرحبًا بك في عقارك<span>أوجد منزلك، في موريتانيا أو خارجها</span></h1>
+      <p class="ask">هل أنت…؟</p>
+      <div class="roles">
+        <button class="role" type="button" id="roleSearch" aria-expanded="false" aria-controls="searchForm"><span data-ic="search"></span><span>أبحث عن عقار<small>إيجار أو شراء</small></span></button>
+        <button class="role" type="button" data-open="dlgReq" data-preset="rent"><span data-ic="list"></span><span>أقدّم طلبًا<small>وتأتيني العروض</small></span></button>
+        <button class="role" type="button" data-open="dlgAdd" data-preset="rent"><span data-ic="plus"></span><span>أعرض عقاري<small>للإيجار أو للبيع</small></span></button>
+        <button class="role" type="button" data-tab="req"><span data-ic="users"></span><span>سمسار<small>أجيب على الطلبات</small></span></button>
+      </div>
+      <form class="search" id="searchForm" hidden>
+        <select id="sKind" aria-label="نوع العرض"><option value="rent">إيجار</option><option value="daily">إيجار يومي</option><option value="land">أرض للبيع</option><option value="home_sale">بيت للبيع</option></select>
+        <select id="sType" aria-label="نوع العقار"></select>
+        <select id="sCity" aria-label="المدينة"></select>
+        <button class="btn" type="submit">ابحث</button>
+      </form>
+      <div class="trust"><span>✓ مجاني</span><span>✓ سماسرة موثوقون</span><span>✓ من أي بلد</span></div>
+      <div class="proof" id="proof" hidden></div>
+    </div>
+  </div>
+</div></header>
+
+<main class="wrap">
+  <!-- طلباتي -->
+  <section class="band" id="mine" hidden>
+    <h2>طلباتي</h2>
+    <p class="lead">العروض التي وصلت على طلباتك. تواصل مباشرة مع صاحب العرض الذي يناسبك. رقمك لا يظهر لأحد.</p>
+    <div class="feats" id="mineList"></div>
+  </section>
+
+  <!-- قسم الإيجار -->
+  <section class="box" id="rent">
+    <div class="sechead"><h2>إيجار وبيع</h2>
+      <span class="seg big" id="modeSeg" role="group" aria-label="القسم"><button data-mode="rent" aria-pressed="true">إيجار</button><button data-mode="sale" aria-pressed="false">بيع وشراء</button></span></div>
+    <p class="lead" style="margin-bottom:4px" id="modeLead">اختر نوع العقار، فتظهر عروضه في الأسفل.</p>
+    <div class="rtiles" id="rtiles"></div>
+    <div class="row" id="rentRow">
+      <span class="seg" role="group" aria-label="مدة الإيجار"><button data-dur="rent" aria-pressed="true">شهري أو سنوي</button><button data-dur="daily" aria-pressed="false">يومي</button></span>
+      <button class="chip" id="furnChip" aria-pressed="false">مفروش فقط</button>
+      <button class="chip" id="sunChip" aria-pressed="false">بلا انقطاع</button>
+      <button class="chip" id="advChip" aria-pressed="false">مقدم شهر واحد</button>
+      <button class="chip" id="waterChip" aria-pressed="false">ماء متوفر</button>
+    </div>
+    <div class="row" id="saleRow" hidden>
+      <button class="chip" data-sf="doc" aria-pressed="false">بسند عقاري</button>
+      <button class="chip" data-sf="corner" aria-pressed="false">كرن (زاوية)</button>
+      <button class="chip" data-sf="road" aria-pressed="false">على الكدرون</button>
+    </div>
+  </section>
+
+  <!-- أحدث الطلبات: قلب المنصة -->
+  <section id="latestReq" class="box reqstrip" hidden>
+    <div class="row" style="justify-content:space-between;align-items:center"><h2 style="margin:0">أحدث الطلبات <span class="live" id="reqLive"></span></h2><button class="btn small" data-tab="req">كل الطلبات</button></div>
+    <p class="lead" style="margin:2px 0 8px">عندك عقار يناسب أحد هذه الطلبات؟ قدّم عرضك مجانًا، ويصل إلى صاحبه مباشرة.</p>
+    <div class="hstrip" id="reqStrip"></div>
+  </section>
+  <!-- السوق والخريطة -->
+  <section id="market">
+    <div class="seg big viewseg" id="viewSeg" role="group" aria-label="ماذا تعرض"><button data-view="offers" aria-pressed="true">العروض</button><button data-view="req" aria-pressed="false">طلبات الباحثين</button></div>
+    <div class="filters">
+      <label>بحث<input id="fQ" type="search" placeholder="حي، شارع، مدرسة…"></label>
+      <label>المدينة<select id="fCity"></select></label>
+      <label id="areaWrap" hidden>الحي<select id="fArea"></select></label>
+      <button type="button" class="btn ghost small morebtn" id="moreBtn" aria-expanded="false" aria-controls="moreF">خيارات أكثر</button>
+    </div>
+    <div class="filters more" id="moreF" hidden>
+      <label>الدولة<select id="fCountry"></select></label>
+      <label>الترتيب<select id="fSort"><option value="new">الأحدث</option><option value="low">الأقل سعرًا</option><option value="high">الأعلى سعرًا</option></select></label>
+      <label>أقصى سعر (أوقية)<input id="fMax" type="number" inputmode="numeric" placeholder="بلا حد"></label>
+    </div>
+    <button class="btn ghost maptoggle" id="mapToggle" type="button" hidden aria-controls="map" aria-expanded="false">🗺 اعرض الخريطة</button>
+    <div class="row areachips" id="areaChips" role="group" aria-label="الأحياء" hidden></div>
+    <div id="mapWrap">
+      <div id="map" aria-label="خريطة العقارات"></div>
+      <button class="mapbtn areasearch" id="areaSearch" type="button" hidden>🔍 ابحث في هذه المنطقة</button>
+      <div class="mapctl" role="group" aria-label="أدوات الخريطة">
+        <button class="mapbtn" id="nearBtn" type="button" title="العقارات القريبة مني">📍 قربي</button>
+        <button class="mapbtn" id="satBtn" type="button" aria-pressed="false" title="صورة القمر الصناعي">🛰 قمر صناعي</button>
+        <button class="mapbtn" id="fullBtn" type="button" aria-pressed="false" title="ملء الشاشة">⛶ <span>ملء الشاشة</span></button>
+      </div>
+    </div>
+    <button class="chip boundschip" id="boundsChip" type="button" hidden>✕ ضمن حدود الخريطة فقط</button>
+    <div class="meta"><span id="count"></span><span class="seg" id="reqSeg" hidden role="group" aria-label="نوع الطلبات"><button data-rq="" aria-pressed="true">كل الطلبات</button><button data-rq="rent" aria-pressed="false">طلبات إيجار</button><button data-rq="buy" aria-pressed="false">طلبات شراء</button></span><button class="btn small ghost" id="cmpBtn" hidden></button><span id="curNote"></span></div>
+    <div class="grid" id="grid" aria-busy="true"><div class="card sk"><div class="thumb"></div><div class="cbody"><i></i><i></i><i></i></div></div><div class="card sk"><div class="thumb"></div><div class="cbody"><i></i><i></i><i></i></div></div><div class="card sk"><div class="thumb"></div><div class="cbody"><i></i><i></i><i></i></div></div><div class="card sk"><div class="thumb"></div><div class="cbody"><i></i><i></i><i></i></div></div></div>
+  </section>
+
+
+
+  <!-- المساعد -->
+  <section class="band" id="assistant">
+    <h2>اكتب طلبك كما تتكلم</h2>
+    <p class="lead">اكتب ما تبحث عنه بكلماتك، حتى بالحسانية، فيفهم الموقع المدينة والحي والغرف والميزانية، ويعرض لك ما يطابق، ثم يرسل طلبك للسماسرة.</p>
+    <div class="assist one">
+      <div class="chat">
+        <div class="chathead">مساعد عقارك</div>
+        <div class="msgs" id="msgs"></div>
+        <form class="composer" id="chatForm"><button type="button" class="btn ghost" id="micBtn" aria-label="تكلم بطلبك" style="padding:8px 10px"></button><input id="chatIn" placeholder="مثال: ابغيت شقة فيها ثلاث بيوت فتفرغ زينة ماهي اكثر من 30 الف" aria-label="اكتب طلبك"><button class="btn or" type="submit">أرسل</button></form>
+      </div>
+    </div>
+  </section>
+
+  <!-- الخدمات -->
+  <section class="band" id="brokers">
+    <h2>سماسرة موثوقون</h2>
+    <p class="lead">لا نمنح شارة <b>«✓ موثّق»</b> إلا بعد أن نتحقق من بطاقة تعريف السمسار ورقمه ونقابله شخصيًا. ونسحبها علنًا إن تكررت الشكاوى عليه.</p>
+    <div class="brgrid" id="brokerList"></div>
+    <p class="alt" style="margin-top:10px">تعاملت مع سمسار وأساء؟ <a href="#" id="reportBroker">أبلغنا</a></p>
+  </section>
+
+  <section class="band" id="services">
+    <h2>خدمات عقارك</h2>
+    <p class="lead">خدمات تكمّل بحثك أو عقارك. المس الخدمة لتعرف تفاصيلها، ثم اطلبها على واتساب.</p>
+    <div class="svcgrid" id="svcGrid"></div>
+    <div class="brokerband"><div><b>أنت سمسار؟</b><span>سجّل مجانًا، وخذ رابط دعوتك الخاص: كل زبون يأتي عن طريقه يُسجَّل باسمك.</span></div><button class="btn" data-open="dlgBroker">سجّل كسمسار</button></div>
+  </section>
+  <!-- عقد الإيجار -->
+  <section class="band" id="contract">
+    <details id="contractBox"><summary><h2>نموذج عقد إيجار جاهز</h2></summary>
+    <p class="lead">املأ البيانات، فيُكتب لك عقد إيجار واضح تنسخه أو ترسله على واتساب ثم تطبعه وتوقّعانه.</p>
+    <form class="fg" id="contractForm">
+      <label>اسم المؤجر<input name="clord"></label><label>هاتف المؤجر<input name="clordph" inputmode="tel" type="tel" autocomplete="tel"></label>
+      <label>اسم المستأجر<input name="ctenant"></label><label>هاتف المستأجر<input name="ctenph" inputmode="tel" type="tel" autocomplete="tel"></label>
+      <label>العقار<input name="cprop" placeholder="مثال: شقة 3 غرف، الطابق الأول"></label><label>العنوان<input name="caddr" placeholder="مثال: تفرغ زينة، نواكشوط"></label>
+      <label>الإيجار الشهري (أوقية)<input name="crent" type="number" min="0"></label><label>التأمين (أوقية)<input name="cdep" type="number" min="0"></label>
+      <label>المقدم المدفوع (أشهر)<input name="cadv" type="number" min="0" max="12" value="1"></label><label>المدة بالأشهر<input name="cmonths" type="number" min="1" value="12"></label><label>تاريخ البداية<input name="cstart" type="date"></label>
+      <label>طريقة الدفع<input name="cpay" placeholder="مثال: أول كل شهر"></label><label>الفواتير على<input name="cbills" placeholder="مثال: المستأجر"></label>
+      <label class="full">شروط أخرى<input name="cnotes"></label>
+      <div class="full"><button class="btn or" type="submit">اكتب العقد</button></div>
+    </form>
+    <textarea id="contractOut" aria-label="نص العقد" rows="16" hidden readonly style="width:100%;margin-top:10px;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--surface);line-height:1.8"></textarea>
+    <div class="row" id="contractActs" hidden style="margin-top:8px"><button class="btn" id="contractCopy" type="button">انسخ العقد</button><a class="btn ghost" id="contractWa" target="_blank" rel="noopener">أرسله على واتساب</a><button class="btn ghost" id="contractPrint" type="button">اطبعه</button></div>
+    </details>
+  </section>
+</main>
+
+<nav class="bnav" aria-label="التنقل">
+  <button data-go="market"><span data-ic="home"></span>السوق</button>
+  <button data-go="map"><span data-ic="pin"></span>الخريطة</button>
+  <button class="plus" data-open="dlgAdd"><span data-ic="plus"></span>أضف</button>
+  <button data-open="dlgReq"><span data-ic="list"></span>اطلب</button>
+  <button data-go="mine"><span data-ic="chat"></span>طلباتي</button>
+</nav>
+
+<a class="wafloat" id="waFloat" hidden target="_blank" rel="noopener" aria-label="واتساب"><svg width="28" height="28" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.4 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.4-.7-2.8-1.1-4.6-4-4.8-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2.1 1-2.4c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.7-.1l.9-1.1c.2-.3.4-.2.7-.1l2 .9c.3.1.5.2.5.4.1.1.1.7-.1 1.3z"/></svg></a>
+<footer><div class="wrap">
+  <div class="fgrid">
+    <div class="fbrand"><svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#2E2AD6"/><path d="M14 31 32 16l18 15v17a3 3 0 0 1-3 3h-9V38h-12v13h-9a3 3 0 0 1-3-3z" fill="#fff"/><circle cx="48" cy="16" r="6" fill="#E9830F"/></svg><div><b>عقارك</b><span>عقارات موريتانيا وخارجها · أوجد منزلك</span></div></div>
+    <nav class="flinks" aria-label="روابط سريعة"><b>ابدأ</b><a href="#" data-open="dlgReq" data-preset="rent">اطلب إيجارًا</a><a href="#" data-open="dlgReq" data-preset="buy">اطلب شراءً</a><a href="#" data-open="dlgAdd" data-preset="rent">اعرض عقارك</a><a href="#" data-tab="req">طلبات الباحثين</a><a href="#" data-open="dlgBroker">سجّل كسمسار</a><a href="#" data-sharesite>شارك الموقع</a></nav>
+    <div class="flinks"><b>المدن</b><div class="citylinks" id="cityLinks"></div></div>
+  </div>
+  <div id="social" style="margin-block:6px"></div>
+  <p class="fnote">© عقارك. الأسعار بالأوقية الجديدة، وما يقابلها بالعملات الأخرى تقريبي. المنصة تربط الباحثين بالمالكين والسماسرة، والاتفاق بين الطرفين مباشرة. · <a href="#" data-open="dlgTerms">الشروط والخصوصية</a></p></div></footer>
+
+<dialog id="dlgTerms"><div class="dlg">
+  <h3>الشروط والخصوصية</h3>
+  <p style="margin:0"><b>دور المنصة:</b> عقارك وسيط يعرض العقارات والطلبات ويربط الباحثين بالمالكين والسماسرة. لا تستلم المنصة أي مال، والاتفاق على السعر والعقد والدفع يتم بين الطرفين مباشرة.</p>
+  <p style="margin:0"><b>الإعلانات:</b> صاحب الإعلان مسؤول عن صحته. نراجع كل إعلان قبل نشره، ونحذف المضلل أو المكرر أو ما لم يعد متوفرًا.</p>
+  <p style="margin:0"><b>السماسرة الموثوقون:</b> نمنح شارة «موثّق» بعد التحقق من بطاقة التعريف والرقم ومقابلة السمسار شخصيًا، ونسحبها إن تكررت الشكاوى. الشارة تعني أننا نعرف هويته، ولا تعني ضمان كل صفقة.</p>
+  <p style="margin:0"><b>فحص الوثيقة:</b> تقرير مكتوب بما وجدناه لدى الجهات المختصة وعلى الأرض، ولا يُعد ضمانًا للملكية. القرار النهائي والتوثيق عند الموثّق مسؤولية المشتري.</p>
+  <p style="margin:0"><b>بياناتك:</b> رقمك في الطلب لا يظهر للزوار، ويُستعمل فقط لإرسال العروض المناسبة لك. روابط الدعوة تحفظ مصدر الزيارة فقط. يمكنك طلب حذف بياناتك في أي وقت عبر واتساب المنصة.</p>
+  <p style="margin:0"><b>تنبيه:</b> لا تدفع أي مبلغ قبل أن ترى العقار بنفسك أو ترى وثائقه، ولا تدفع «رسوم زيارة» لأحد.</p>
+  <div class="row"><button class="btn" data-close>حسنًا</button></div>
+</div></dialog>
+
+<!-- تفاصيل العقار -->
+<dialog id="dlgItem"><div class="dlg" id="itemBody"></div></dialog>
+
+<!-- طلب عقار -->
+<dialog id="dlgReq"><form class="dlg" id="reqForm"><input name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+  <h3>اطلب عقارك مجانًا: إيجار أو شراء</h3>
+  <p class="lead" style="margin:0">اكتب ما تريده مرة واحدة، من داخل موريتانيا أو خارجها، وتصلك عروض السماسرة على واتساب.</p>
+  <div class="fg">
+    <div class="full kindpick" role="radiogroup" aria-label="أريد">
+      <label><input type="radio" name="kind" value="rent" checked><span>أريد أن أستأجر</span></label>
+      <label><input type="radio" name="kind" value="buy"><span>أريد أن أشتري</span></label>
+      <label><input type="radio" name="kind" value="daily"><span>إيجار يومي</span></label>
+      <label><input type="radio" name="kind" value="invest"><span>فرصة استثمارية</span></label>
+    </div>
+    <label>نوع العقار<select name="ptype"></select></label>
+    <label>المدة<select name="duration"><option>شهري</option><option>سنوي</option><option>يومي</option></select></label>
+    <label>المدينة<select name="city" id="rCity"></select></label>
+    <label id="rAreaWrap">الحي<select name="area" id="rArea"></select></label>
+    <label>عدد الغرف<input name="rooms" type="number" min="0" max="30" value="2"></label>
+    <label>أقصى ميزانية (أوقية جديدة)<input name="budget" type="number" inputmode="numeric" min="0" placeholder="مثال: 25000"></label>
+    <label>تاريخ الدخول<input name="move_in" type="date"></label>
+    <label>المقدم الذي تستطيع دفعه<select name="advance_max"><option value="">لا يهم</option><option value="1">شهر واحد</option><option value="2">شهران</option><option value="3">3 أشهر</option><option value="6">6 أشهر</option><option value="12">سنة</option></select></label>
+    <label>أين تقيم الآن؟<select name="residence" id="rRes"></select></label>
+    <div class="full checks"><label><input type="checkbox" name="furnished"> مفروش</label><label><input type="checkbox" name="solar"> بلا انقطاع</label></div>
+    <label class="full">تفاصيل أخرى (تظهر للسماسرة، لا تكتب رقمك هنا)<textarea name="notes" rows="2" maxlength="1000" placeholder="مثال: عائلة، طابق أرضي، قرب مدرسة"></textarea></label>
+    <label>اسمك<input name="name" maxlength="80"></label>
+    <label>رقم واتساب (مع رمز الدولة)<input name="whatsapp" inputmode="tel" type="tel" autocomplete="tel" required placeholder="222 xx xx xx xx"></label>
+  </div>
+  <div class="row"><button class="btn or" type="submit">أرسل الطلب</button><button class="btn ghost" type="button" data-close>إلغاء</button></div>
+</form></dialog>
+
+<!-- إضافة عقار -->
+<dialog id="dlgAdd"><form class="dlg" id="addForm"><input name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+  <h3>اعرض عقارك: للإيجار أو للبيع</h3>
+  <p class="lead" style="margin:0">يظهر عقارك بعد مراجعة سريعة. النشر مجاني. اكتب السعر بالأوقية الجديدة، ونُظهر مقابله بالقديمة تلقائيًا.</p>
+  <div class="fg">
+    <div class="full kindpick" role="radiogroup" aria-label="أعرض عقاري">
+      <label><input type="radio" name="kind" value="rent" checked><span>للإيجار</span></label>
+      <label><input type="radio" name="kind" value="daily"><span>إيجار يومي</span></label>
+      <label><input type="radio" name="kind" value="home_sale"><span>بيت للبيع</span></label>
+      <label><input type="radio" name="kind" value="land"><span>أرض للبيع</span></label>
+    </div>
+    <label>نوع العقار<select name="ptype"></select></label>
+    <label>المدينة<select name="city" id="aCity"></select></label>
+    <label id="aAreaWrap">الحي<select name="area" id="aArea"></select></label>
+    <label class="full">العنوان<input name="title" required minlength="3" maxlength="140" placeholder="مثال: شقة 3 غرف قرب الشارع المعبّد"></label>
+    <label>السعر (أوقية جديدة)<input name="price" type="number" inputmode="numeric" min="0" required></label>
+    <label>عدد الغرف<input name="rooms" type="number" min="0" max="30" value="2"></label>
+    <label>المساحة (م²)<input name="size_m2" type="number" min="0"></label>
+    <label>الوثيقة<select name="title_doc"><option value="">—</option><option>سند عقاري</option><option>ترخيص</option></select></label>
+    <label>المقدم المطلوب<select name="advance_months"><option value="">—</option><option value="1">شهر واحد</option><option value="2">شهران</option><option value="3">3 أشهر</option><option value="6">6 أشهر</option><option value="12">سنة</option></select></label>
+    <div class="full checks"><label><input type="checkbox" name="furnished"> مفروش</label><label><input type="checkbox" name="solar"> بلا انقطاع (شمسي/بطارية)</label></div>
+    <div class="full"><div style="font-size:13px;color:var(--muted);margin-bottom:4px">مميزات يسأل عنها الناس</div><div class="checks featbox" id="featBox"></div></div>
+    <label class="full">الوصف<textarea name="description" rows="3" maxlength="2000"></textarea></label>
+    <div class="full"><button class="btn ghost small" type="button" id="genDesc">اكتب الوصف تلقائيًا</button></div>
+    <label class="full">الصور (حتى 6)<input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+    <div class="full"><div style="font-size:13px;color:var(--muted);margin-bottom:4px">الموقع على الخريطة (اختياري): اضغط مكان العقار، أو استعمل موقعك إن كنت فيه الآن</div><div class="row" style="margin-bottom:6px"><button type="button" class="btn ghost small" id="pickMe">📍 أنا في مكان العقار الآن</button><button type="button" class="btn ghost small" id="pickSat" aria-pressed="false">🛰 قمر صناعي</button></div><div id="pickMap"></div></div>
+    <label>الاسم<input name="contact_name" maxlength="80"></label>
+    <label>رقم واتساب (مع رمز الدولة)<input name="contact_whatsapp" inputmode="tel" type="tel" autocomplete="tel" required placeholder="222 xx xx xx xx"></label>
+  </div>
+  <div class="row"><button class="btn or" type="submit">أرسل للمراجعة</button><button class="btn ghost" type="button" data-close>إلغاء</button></div>
+</form></dialog>
+
+<!-- عرض على طلب -->
+<dialog id="dlgOffer"><form class="dlg" id="offerForm"><input name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+  <h3>قدّم عرضًا لهذا الطلب</h3>
+  <p class="lead" style="margin:0" id="offerReq"></p>
+  <input type="hidden" name="request_id">
+  <div class="fg">
+    <label class="full">تفاصيل العرض<textarea name="message" rows="3" required minlength="3" maxlength="1000" placeholder="مثال: شقة 3 غرف في تفرغ زينة، طابق أول، قريبة من الشارع"></textarea></label>
+    <label>السعر (أوقية)<input name="price" type="number" inputmode="numeric" min="0"></label>
+    <label>رقم العقار في الموقع (إن وجد)<input name="listing_id" type="number" min="1"></label>
+    <label>الاسم<input name="name" maxlength="80"></label>
+    <label>رقم واتساب (مع رمز الدولة)<input name="whatsapp" inputmode="tel" type="tel" autocomplete="tel" required></label>
+  </div>
+  <p class="alt" style="margin:0">يرى صاحب الطلب عرضك ورقمك، ويتواصل معك إن ناسبه.</p>
+  <div class="row"><button class="btn or" type="submit">أرسل العرض</button><button class="btn ghost" type="button" data-close>إلغاء</button></div>
+</form></dialog>
+
+<!-- تسجيل سمسار -->
+<dialog id="dlgBroker"><form class="dlg" id="brokerForm"><input name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+  <h3>سجّل كسمسار</h3>
+  <p class="lead" style="margin:0">التسجيل مجاني. بعد التحقق من حسابك تصلك طلبات الباحثين في مدنك.</p>
+  <div class="fg">
+    <label>الاسم أو اسم الوكالة<input name="name" required minlength="2" maxlength="80"></label>
+    <label>رقم واتساب<input name="whatsapp" inputmode="tel" type="tel" autocomplete="tel" required></label>
+    <label class="full">المدن التي تعمل فيها<select name="cities" id="bCities" multiple size="5"></select></label>
+    <label class="full">الأحياء<input name="areas" maxlength="200" placeholder="مثال: تفرغ زينة، لكصر"></label>
+  </div>
+  <div class="row"><button class="btn or" type="submit">سجّلني</button><button class="btn ghost" type="button" data-close>إلغاء</button></div>
+</form></dialog>
+
+<script src="config.js?v=2026.10.23"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="i18n.js?v=2026.10.23"></script>
+<script src="art.js?v=2026.10.23"></script>
+<script src="common.js?v=2026.10.23"></script>
+<script src="app.js?v=2026.10.23"></script>
+<script src="extras.js?v=2026.10.23"></script>
+<script src="services.js?v=2026.10.23"></script>
+</body>
+</html>

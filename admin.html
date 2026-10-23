@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>عقارك — لوحة الإدارة</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alexandria:wght@600;700;800&family=Readex+Pro:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="styles.css?v=2026.10.23">
+<style>
+.adm{padding-block:20px 40px}
+body.signin{background:linear-gradient(180deg,#2B27D0,#4B2BE0) fixed}
+body.signin .adm{padding-top:0}
+body.signin .hero{background:transparent}
+body.signin .hero .top{justify-content:center}
+.login{max-width:420px;margin:10px auto 0;filter:drop-shadow(0 -6px 18px rgba(10,8,80,.25))}
+.login .in{background:var(--surface);padding:0 26px 30px;display:grid;gap:18px;border-radius:0 0 18px 18px}
+.login h2{margin:-18px 0 6px;text-align:center;font-size:22px}
+.login label{display:grid;gap:2px;font-size:13px;color:var(--muted)}
+.login input{border:0;border-bottom:1.5px solid var(--line);border-radius:0;padding:10px 2px;background:transparent;font-size:16px;color:var(--ink)}
+.login input:focus{outline:none;border-bottom-color:var(--brand)}
+.login .btn{min-height:50px;font-size:17px;margin-top:6px}
+.login .note{text-align:center;font-size:12.5px;color:var(--muted);margin:0}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-block:12px}
+.stats div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+.stats b{display:block;font-family:var(--display);font-size:26px;color:var(--brand)}
+@media (max-width:640px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.st{font-size:12px;font-weight:600;border-radius:99px;padding:2px 8px;background:var(--bg)}
+.st.pending,.st.open{background:var(--orange-soft);color:var(--orange-ink)} .st.approved,.st.matched{background:var(--ok-soft);color:var(--ok)}
+td .row{gap:6px}
+</style>
+</head>
+<body>
+<div class="demo" id="demoBar" hidden>وضع تجريبي: لا توجد قاعدة بيانات بعد. أضف مفاتيح Supabase في config.js.</div>
+<header class="hero" style="padding-bottom:16px"><div class="wrap top">
+  <a class="brand" href="./" style="margin:0"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><path d="M6 19 20 7l14 12v14a2 2 0 0 1-2 2h-8v-9h-8v9H8a2 2 0 0 1-2-2z" fill="#fff"/><circle cx="31" cy="9" r="4" fill="#F5A040"/></svg><span><b>عقارك</b><small>لوحة الإدارة</small></span></a>
+  <button class="btn small" id="logout" hidden style="background:#fff;color:#2E2AD6">خروج</button>
+</div></header>
+<main class="wrap adm">
+  <form class="login" id="loginForm" hidden>
+    <svg class="rooftop" viewBox="0 0 400 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0 80 L183 7 Q200 0 217 7 L400 80 Z"/></svg>
+    <div class="in">
+      <h2>تسجيل الدخول</h2>
+      <label>البريد الإلكتروني<input type="email" name="email" required autocomplete="username" inputmode="email"></label>
+      <label>كلمة المرور<input type="password" name="password" required autocomplete="current-password"></label>
+      <button class="btn" type="submit">دخول</button>
+      <p class="note">هذه الصفحة لمدير الموقع فقط.</p>
+    </div>
+  </form>
+  <div id="panel" hidden>
+    <div class="stats" id="stats"></div>
+    <div class="tabs" role="tablist" id="admTabs">
+      <button class="tab" data-t="pending" aria-selected="true">إعلانات تنتظر المراجعة</button>
+      <button class="tab" data-t="listings" aria-selected="false">كل الإعلانات</button>
+      <button class="tab" data-t="requests" aria-selected="false">الطلبات</button>
+      <button class="tab" data-t="offers" aria-selected="false">العروض على الطلبات</button>
+      <button class="tab" data-t="brokers" aria-selected="false">السماسرة</button>
+      <button class="tab" data-t="bulk" aria-selected="false">➕ إضافة سريعة</button>
+    </div>
+    <div class="tablewrap" id="tblWrap" style="margin-top:12px"><table id="tbl"></table></div>
+    <div class="box" id="bulk" hidden style="margin-top:12px">
+      <h3 style="margin:0 0 6px">إضافة عروض كثيرة دفعة واحدة</h3>
+      <p class="alt" style="margin:0 0 8px">الصق سطرًا لكل عقار (من إكسل أو واتساب). افصل بين الخانات بعلامة | أو بالجدولة (Tab)، بهذا الترتيب:<br>
+      <b>النوع | نوع العقار | الحي | السعر | الغرف | العنوان | واتساب صاحبه | المساحة</b><br>
+      النوع: إيجار، يومي، أرض، بيع · السعر بالأوقية الجديدة، أو اكتب بعده «قديمة» · الخانات بعد السعر اختيارية · بلا رقم يُوضع رقم المنصة.</p>
+      <textarea id="bulkIn" rows="8" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--bg);font:inherit" placeholder="إيجار | شقة | تفرغ زينة | 35000 | 3 | شقة 3 غرف طابق أول | 36112233
+إيجار | دار | تيارت | 220000 قديمة | 3 | | 46223344
+أرض | أرض | لكصر | 1500000 | | قطعة كرن على الكدرون | | 300"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn ghost" id="bulkCheck" type="button">راجع قبل النشر</button><button class="btn" id="bulkGo" type="button" disabled>انشر</button></div>
+      <div class="tablewrap" style="margin-top:10px"><table id="bulkTbl"></table></div>
+    </div>
+  </div>
+</main>
+<script src="config.js?v=2026.10.23"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="common.js?v=2026.10.23"></script>
+<script src="admin.js?v=2026.10.23"></script>
+</body>
+</html>

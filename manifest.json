@@ -1,0 +1,54 @@
+{
+ "name": "عقارك — عقارات موريتانيا وخارجها",
+ "short_name": "عقارك",
+ "lang": "ar",
+ "dir": "rtl",
+ "start_url": "./",
+ "display": "standalone",
+ "background_color": "#F3F3F8",
+ "theme_color": "#2E2AD6",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-maskable.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  },
+  {
+   "src": "icon.svg",
+   "sizes": "any",
+   "type": "image/svg+xml"
+  }
+ ],
+ "id": "./",
+ "scope": "./",
+ "description": "اطلب عقارك مجانًا أو اعرض عقارك للإيجار أو للبيع في موريتانيا وخارجها.",
+ "categories": [
+  "lifestyle",
+  "business"
+ ],
+ "shortcuts": [
+  {
+   "name": "اطلب عقارًا",
+   "url": "./?open=req"
+  },
+  {
+   "name": "اعرض عقارك",
+   "url": "./?open=add"
+  },
+  {
+   "name": "طلبات الباحثين",
+   "url": "./?tab=req"
+  }
+ ]
+}
