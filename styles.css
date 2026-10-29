@@ -335,3 +335,11 @@ body.noscroll{overflow:hidden}
 .plan{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:8px;align-content:start}
 .plan.pro{border:2px solid var(--orange-strong)}.plan h3{margin:0}.plan .pp{margin:0;font:800 26px var(--display);color:var(--brand)}
 .plan ul{margin:0;padding-inline-start:18px;display:grid;gap:4px;font-size:14px}
+/* اختيار تصميم الإعلان */
+.designs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+.design{border:2px solid var(--line,#e3e3ee);border-radius:14px;padding:6px;background:#fff;cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:center;font:inherit;color:inherit}
+.design.on{border-color:var(--or,#FF7A1A);box-shadow:0 0 0 3px rgba(255,122,26,.2)}
+.dimg{display:block;width:100%;aspect-ratio:4/5;border-radius:10px;overflow:hidden;background:#f1f1f6;position:relative}
+.dimg img{width:100%;height:100%;object-fit:cover;display:block}
+.dimg .spin{position:absolute;inset:0;margin:auto;width:26px;height:26px;border:3px solid #ddd;border-top-color:#2E2AD6;border-radius:50%;animation:aqspin .8s linear infinite}
+@keyframes aqspin{to{transform:rotate(1turn)}}

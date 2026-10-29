@@ -90,66 +90,121 @@ const FEAT_PT={
 };
 function rr(x,X,Y,w,h,r){x.beginPath();if(x.roundRect){x.roundRect(X,Y,w,h,r);return}x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()}
 function fitFont(x,txt,weight,size,fam,maxW){let s=size;do{x.font=`${weight} ${s}px ${fam}`;if(x.measureText(txt).width<=maxW)break;s-=4}while(s>26);return s}
-async function adPoster(o){
+/* قوالب التصميم: الأزرق الكلاسيكي، الصحراء، الذهبي الفاخر، هوية عقارك، والصورة */
+const THEMES={
+  classic:{name:"كلاسيكي",head:"#173B67",headTxt:"#fff",title:"#FF5A5F",size:"#F4C430",badge:"#F4C430",badgeTxt:"#C0262D",body:"#F7F3EA",why:"#C0262D",ic:"#173B67",icTxt:"#fff",ink:"#1D2333",muted:"#6B6F7B",box:"#fff",boxLine:"#C9CED8",price:"#C0262D",bar:"#173B67",barTxt:"#fff",phone:"#F4C430"},
+  desert:{name:"صحراء",head:"#F3DDB3",headTxt:"#3B2A1A",title:"#3B2A1A",size:"#B7651F",badge:"#B7472A",badgeTxt:"#fff",body:"#FBF5EA",why:"#B7472A",ic:"#B7651F",icTxt:"#fff",ink:"#3B2A1A",muted:"#8A7561",box:"#fff",boxLine:"#E3CFAE",price:"#B7472A",bar:"#3B2A1A",barTxt:"#fff",phone:"#F2C14E"},
+  gold:{name:"ذهبي فاخر",head:"#0F0F12",headTxt:"#F5EBD0",title:"#F5EBD0",size:"#D4AF37",badge:"#D4AF37",badgeTxt:"#0F0F12",body:"#16161B",why:"#D4AF37",ic:"#26262D",icTxt:"#D4AF37",ink:"#F5EBD0",muted:"#A69C84",box:"#1E1E24",boxLine:"#D4AF37",price:"#D4AF37",bar:"#D4AF37",barTxt:"#0F0F12",phone:"#0F0F12"},
+  brand:{name:"عقارك",head:"#2E2AD6",headTxt:"#fff",title:"#fff",size:"#FFB547",badge:"#FF7A1A",badgeTxt:"#fff",body:"#FFFFFF",why:"#2E2AD6",ic:"#EEF0FF",icTxt:"#2E2AD6",ink:"#151532",muted:"#5D5F78",box:"#F5F6FF",boxLine:"#D9DBF5",price:"#2E2AD6",bar:"#FF7A1A",barTxt:"#fff",phone:"#fff"},
+  photo:{name:"بالصورة",head:"#111",headTxt:"#fff",title:"#fff",size:"#F4C430",badge:"#F4C430",badgeTxt:"#111",body:"#FFFFFF",why:"#C0262D",ic:"#173B67",icTxt:"#fff",ink:"#1D2333",muted:"#6B6F7B",box:"#F7F3EA",boxLine:"#E5DCC8",price:"#C0262D",bar:"#25D366",barTxt:"#fff",phone:"#fff"}
+};
+function loadImg(src){return new Promise(r=>{if(!src)return r(null);const im=new Image();im.crossOrigin="anonymous";im.onload=()=>r(im);im.onerror=()=>r(null);im.src=src;setTimeout(()=>r(null),6000)})}
+let QRP=null;function qrLib(){if(window.qrcode)return Promise.resolve(window.qrcode);if(!QRP)QRP=new Promise(res=>{const sc=document.createElement("script");sc.src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js";sc.onload=()=>res(window.qrcode);sc.onerror=()=>res(null);document.head.appendChild(sc);setTimeout(()=>res(window.qrcode||null),5000)});return QRP}
+async function drawQR(x,url,X,Y,size,fg,bg){const q=await qrLib();if(!q||!url)return false;try{const qr=q(0,"M");qr.addData(url);qr.make();const n=qr.getModuleCount(),pad=10,cell=(size-2*pad)/n;
+  x.fillStyle=bg;rr(x,X,Y,size,size,14);x.fill();x.fillStyle=fg;for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(qr.isDark(r,c))x.fillRect(X+pad+c*cell,Y+pad+r*cell,Math.ceil(cell),Math.ceil(cell));return true}catch(_){return false}}
+function paintHead(x,th,key,W,HH,fr){
+  if(key==="desert"){const g=x.createLinearGradient(0,0,0,HH);g.addColorStop(0,"#FBEFD6");g.addColorStop(1,"#EFD3A2");x.fillStyle=g;x.fillRect(0,0,W,HH);
+    x.fillStyle="rgba(255,240,200,.9)";x.beginPath();x.arc(fr?W-170:170,150,70,0,7);x.fill();
+    const dune=(y0,amp,col)=>{x.fillStyle=col;x.beginPath();x.moveTo(0,HH);x.lineTo(0,y0);x.bezierCurveTo(W*.25,y0-amp,W*.45,y0+amp*.6,W*.65,y0-amp*.3);x.bezierCurveTo(W*.8,y0-amp,W*.92,y0,W,y0-amp*.4);x.lineTo(W,HH);x.closePath();x.fill()};
+    dune(HH-120,60,"rgba(226,182,120,.55)");dune(HH-60,45,"rgba(205,150,90,.55)");
+    // نخلة صغيرة
+    const px=fr?W-90:90,py=HH-70;x.strokeStyle="rgba(90,60,30,.55)";x.lineWidth=8;x.beginPath();x.moveTo(px,py);x.quadraticCurveTo(px+(fr?-10:10),py-80,px,py-150);x.stroke();
+    x.fillStyle="rgba(90,60,30,.55)";for(let k=0;k<6;k++){x.save();x.translate(px,py-150);x.rotate(k*Math.PI/3);x.beginPath();x.ellipse(32,0,36,9,0,0,7);x.fill();x.restore()}
+    return}
+  if(key==="gold"){x.fillStyle=th.head;x.fillRect(0,0,W,HH);
+    x.strokeStyle="rgba(212,175,55,.18)";x.lineWidth=1.5;for(let k=-HH;k<W;k+=46){x.beginPath();x.moveTo(k,0);x.lineTo(k+HH,HH);x.stroke()}
+    const g=x.createLinearGradient(0,0,W,0);g.addColorStop(0,"rgba(212,175,55,0)");g.addColorStop(.5,"#D4AF37");g.addColorStop(1,"rgba(212,175,55,0)");x.fillStyle=g;x.fillRect(0,HH-4,W,4);return}
+  if(key==="brand"){const g=x.createLinearGradient(0,0,W,HH);g.addColorStop(0,"#2E2AD6");g.addColorStop(1,"#5B2BE0");x.fillStyle=g;x.fillRect(0,0,W,HH);
+    x.fillStyle="rgba(255,255,255,.08)";for(let i=0;i<14;i++)for(let j=0;j<5;j++){x.beginPath();x.arc(40+i*78,30+j*70,4,0,7);x.fill()}
+    // السقف الأبيض يحتضن الجسم
+    x.fillStyle="#fff";x.beginPath();x.moveTo(0,HH);x.lineTo(W/2,HH-70);x.lineTo(W,HH);x.closePath();x.fill();return}
+  x.fillStyle=th.head;x.fillRect(0,0,W,HH);
+  for(let i=0;i<5;i++){x.beginPath();x.arc(fr?W-120:120,HH-40,120+i*70,0,7);x.lineWidth=2;x.strokeStyle="rgba(255,255,255,.06)";x.stroke()}
+}
+async function adPoster(o,key){
+  key=THEMES[key]?key:"classic";const th=THEMES[key];
   try{await document.fonts.ready}catch(_){}
   const W=1080,H=1350,P=70,c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");
   const css=getComputedStyle(document.documentElement),v=n=>css.getPropertyValue(n).trim();
   const disp=v("--display")||"sans-serif",body=v("--body")||"sans-serif",fr=window.AQ_I18N&&AQ_I18N.lang==="fr";
-  const NAVY="#173B67",RED="#C0262D",GOLD="#F4C430",CREAM="#F7F3EA",INK="#1D2333",MUTED="#6B6F7B";
   const R=W-P,L=P; x.direction=fr?"ltr":"rtl";
   const at=(txt,X,Y,align)=>{x.textAlign=align;x.fillText(txt,X,Y)};
   const START=fr?"left":"right",END=fr?"right":"left",SX=fr?L:R,EX=fr?R:L;
-  // الرأس الأزرق
-  const HH=500;x.fillStyle=NAVY;x.fillRect(0,0,W,HH);
-  x.fillStyle="rgba(255,255,255,.05)";for(let i=0;i<5;i++){x.beginPath();x.arc(fr?W-120:120,HH-40,120+i*70,0,7);x.lineWidth=2;x.strokeStyle="rgba(255,255,255,.06)";x.stroke()}
-  // الوسم الأصفر
-  x.font=`800 42px ${body}`;const bw=x.measureText(o.badge).width+64;x.fillStyle=GOLD;rr(x,fr?L:R-bw,58,bw,78,12);x.fill();
-  x.fillStyle=RED;at(o.badge,fr?L+bw/2:R-bw/2,112,"center");
-  // سطر علوي صغير
-  x.fillStyle="rgba(255,255,255,.9)";x.font=`500 30px ${body}`;at(o.top,EX,108,END);
-  // العنوان الكبير: النوع بالأحمر + المساحة بالأصفر
-  let fs=fitFont(x,o.head+"  "+(o.size||""),"800",104,disp,W-2*P);
-  x.font=`800 ${fs}px ${disp}`;const hw=x.measureText(o.head).width;
-  x.fillStyle="#FF5A5F";at(o.head,SX,270,START);
-  if(o.size){x.fillStyle=GOLD;at(o.size,fr?SX+hw+28:SX-hw-28,270,START)}
-  // سطر فرعي
-  let y=345;if(o.sub){x.fillStyle="#fff";fitFont(x,o.sub,"600",40,body,W-2*P);at(o.sub,SX,y,START);y+=72}else y+=20;
-  // المكان
-  x.fillStyle="#fff";x.font=`700 44px ${body}`;at("📍 "+o.place,SX,Math.min(y+10,455),START);
-  // الجسم الكريمي
-  x.fillStyle=CREAM;x.fillRect(0,HH,W,H-HH);
-  x.fillStyle=RED;x.font=`800 50px ${disp}`;at(o.why,SX,HH+90,START);
-  // النقاط: عمودان
-  const pts=o.points.slice(0,6),colW=(W-2*P-30)/2,rows=Math.max(1,Math.ceil(pts.length/2)),avail=(H-330-30)-(HH+130),rowH=Math.min(150,avail/rows);let top=HH+130+(avail-rows*rowH)/2+(rowH-90)/2;
+  let HH=500,img=null;
+  if(key==="photo"){img=await loadImg(o.photo);if(!img){key="classic";return adPoster(o,"classic")}HH=560}
+  // الجسم أولًا ثم الرأس
+  x.fillStyle=th.body;x.fillRect(0,0,W,H);
+  if(img){const s=Math.max(W/img.width,HH/img.height),w=img.width*s,h=img.height*s;x.save();x.beginPath();x.rect(0,0,W,HH);x.clip();x.drawImage(img,(W-w)/2,(HH-h)/2,w,h);x.restore();
+    const g=x.createLinearGradient(0,0,0,HH);g.addColorStop(0,"rgba(0,0,0,.55)");g.addColorStop(.45,"rgba(0,0,0,.15)");g.addColorStop(1,"rgba(0,0,0,.8)");x.fillStyle=g;x.fillRect(0,0,W,HH)}
+  else paintHead(x,th,key,W,HH,fr);
+  // الوسم
+  x.font=`800 42px ${body}`;const bw=x.measureText(o.badge).width+64;x.fillStyle=th.badge;rr(x,fr?L:R-bw,58,bw,78,key==="gold"?4:12);x.fill();
+  x.fillStyle=th.badgeTxt;at(o.badge,fr?L+bw/2:R-bw/2,112,"center");
+  x.fillStyle=th.headTxt;x.globalAlpha=.92;x.font=`500 30px ${body}`;at(o.top,EX,108,END);x.globalAlpha=1;
+  // العنوان الكبير
+  const base=img?HH-210:key==="brand"?250:270;
+  const fs=fitFont(x,o.head+"  "+(o.size||""),"800",104,disp,W-2*P);x.font=`800 ${fs}px ${disp}`;const hw=x.measureText(o.head).width;
+  if(img){x.shadowColor="rgba(0,0,0,.5)";x.shadowBlur=18}
+  x.fillStyle=th.title;at(o.head,SX,base,START);
+  if(o.size){x.fillStyle=th.size;at(o.size,fr?SX+hw+28:SX-hw-28,base,START)}
+  let y=base+75;if(o.sub){x.fillStyle=th.headTxt;fitFont(x,o.sub,"600",40,body,W-2*P);at(o.sub,SX,y,START);y+=72}else y+=20;
+  x.fillStyle=th.headTxt;x.font=`700 44px ${body}`;at("📍 "+o.place,SX,Math.min(y+10,HH-(key==="brand"?95:45)),START);x.shadowBlur=0;
+  // الإطار الذهبي
+  if(key==="gold"){x.strokeStyle="#D4AF37";x.lineWidth=3;x.strokeRect(24,24,W-48,H-48);x.lineWidth=1;x.strokeRect(36,36,W-72,H-72)}
+  // لماذا؟
+  const wy=HH+(key==="brand"?40:90);x.fillStyle=th.why;x.font=`800 50px ${disp}`;at(o.why,SX,wy,START);
+  if(key!=="classic"){const tw=x.measureText(o.why).width;x.fillStyle=th.size;x.fillRect(fr?SX:SX-Math.min(tw,140),wy+16,Math.min(tw,140),6)}
+  const pts=o.points.slice(0,img?4:6),colW=(W-2*P-30)/2,rows=Math.max(1,Math.ceil(pts.length/2)),y0=wy+40,avail=(H-330-30)-y0,rowH=Math.min(150,avail/rows);
+  let top=y0+(avail-rows*rowH)/2+(rowH-90)/2;
   pts.forEach((p,k)=>{
-    const col=k%2,row=Math.floor(k/2),cx=fr?(L+col*(colW+30)):(R-col*(colW+30)),cy=top+row*rowH;
-    const icx=fr?cx+40:cx-40;x.fillStyle=NAVY;x.beginPath();x.arc(icx,cy+36,40,0,7);x.fill();
-    x.font=`38px ${body}`;x.fillStyle="#fff";at(p[0],icx,cy+50,"center");
+    const col=k%2,row=Math.floor(k/2),cx=fr?(L+col*(colW+30)):(R-col*(colW+30)),cy=top+row*rowH,icx=fr?cx+40:cx-40;
+    x.fillStyle=th.ic;x.beginPath();x.arc(icx,cy+36,40,0,7);x.fill();if(key==="gold"){x.strokeStyle="#D4AF37";x.lineWidth=2;x.stroke()}
+    x.font=`38px ${body}`;x.fillStyle=th.icTxt;at(p[0],icx,cy+50,"center");
     const tx=fr?cx+98:cx-98,maxW=colW-110;
-    x.fillStyle=INK;fitFont(x,p[1],"700",38,body,maxW);at(p[1],tx,cy+30,START);
-    if(p[2]){x.fillStyle=MUTED;fitFont(x,p[2],"500",28,body,maxW);at(p[2],tx,cy+72,START)}
+    x.fillStyle=th.ink;fitFont(x,p[1],"700",38,body,maxW);at(p[1],tx,cy+30,START);
+    if(p[2]){x.fillStyle=th.muted;fitFont(x,p[2],"500",28,body,maxW);at(p[2],tx,cy+72,START)}
   });
+  // رمز QR إلى صفحة الإعلان بجانب السعر والتواصل
+  const py=H-330,by=H-182,QS=238;
+  const hasQR=o.url&&await drawQR(x,o.url,fr?R-QS:L,py,QS,key==="gold"?"#0F0F12":"#111",key==="gold"?"#D4AF37":"#fff");
+  if(hasQR&&key!=="gold"){x.strokeStyle=th.boxLine;x.lineWidth=3;rr(x,fr?R-QS:L,py,QS,QS,14);x.stroke()}
+  const BL=hasQR&&!fr?L+QS+20:L,BW=W-2*P-(hasQR?QS+20:0),BS=fr?BL:BL+BW,BE=fr?BL+BW:BL;
   // صندوق السعر
-  const py=H-330;x.lineWidth=3;x.strokeStyle="#C9CED8";x.fillStyle="#fff";rr(x,L,py,W-2*P,128,18);x.fill();x.stroke();
-  x.fillStyle=MUTED;x.font=`500 32px ${body}`;at(o.priceLabel,SX+(fr?28:-28),py+52,START);
-  x.font=`500 28px ${body}`;const side=Math.max(x.measureText(o.price2||"").width,200)+80;
-  if(o.price2){x.fillStyle=MUTED;at(o.price2,SX+(fr?28:-28),py+100,START)}
-  if(o.price){x.fillStyle=RED;fitFont(x,o.price,"800",58,disp,W-2*P-side-40);at(o.price,EX+(fr?-30:30),py+82,END)}
+  x.lineWidth=3;x.strokeStyle=th.boxLine;x.fillStyle=th.box;rr(x,BL,py,BW,128,18);x.fill();x.stroke();
+  x.fillStyle=th.muted;x.font=`600 28px ${body}`;at(o.priceLabel,BS+(fr?28:-28),py+40,START);
+  if(o.price2){x.fillStyle=th.muted;fitFont(x,o.price2,"500",26,body,BW*.55);at(o.price2,BE+(fr?-28:28),py+40,END)}
+  if(o.price){x.fillStyle=th.price;fitFont(x,o.price,"800",60,disp,BW-56);at(o.price,BS+(fr?28:-28),py+106,START)}
   // شريط واتساب
-  const wy=H-182;x.fillStyle=NAVY;rr(x,L,wy,W-2*P,110,18);x.fill();
-  x.fillStyle="#fff";x.font=`700 38px ${body}`;at("💬 "+o.ctaLabel,SX+(fr?30:-30),wy+70,START);
-  x.fillStyle=GOLD;fitFont(x,o.phone,"800",64,disp,W/2);x.direction="ltr";at(o.phone,fr?R-30:L+30,wy+78,fr?"right":"left");x.direction=fr?"ltr":"rtl";
-  // التذييل
-  x.fillStyle=MUTED;x.font=`500 27px ${body}`;at(o.foot,W/2,H-30,"center");
+  x.fillStyle=th.bar;rr(x,BL,by,BW,110,18);x.fill();
+  x.fillStyle=th.barTxt;fitFont(x,"💬 "+o.ctaLabel,"700",38,body,BW*.45);at("💬 "+o.ctaLabel,BS+(fr?30:-30),by+70,START);
+  x.fillStyle=th.phone;fitFont(x,o.phone,"800",64,disp,BW*.5);x.direction="ltr";at(o.phone,BE+(fr?-30:30),by+78,fr?"right":"left");x.direction=fr?"ltr":"rtl";
+  x.fillStyle=th.muted;x.font=`500 27px ${body}`;at(o.foot,W/2,H-(key==="gold"?44:30),"center");
   return new Promise(r=>c.toBlob(r,"image/png"));
 }
-async function shareImage(o,name){
-  const blob=await adPoster(o);if(!blob){toast(t("تعذّر إنشاء الصورة"));return}
+async function shareImage(o,name,key){
+  const blob=await adPoster(o,key);if(!blob){toast(t("تعذّر إنشاء الصورة"));return}
   const file=new File([blob],name,{type:"image/png"});
   try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:o.shareText||SITE()});return}}catch(err){if(err&&err.name==="AbortError")return}
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
   toast(t("حُفظت الصورة: انشرها في حالة واتساب"));
 }
+// نافذة اختيار التصميم مع معاينات حقيقية
+let PICK=null;
+async function pickDesign(o,name){
+  const keys=Object.keys(THEMES).filter(k=>k!=="photo"||o.photo);
+  let last="classic";try{last=localStorage.getItem("aq-theme")||"classic"}catch(_){}
+  $("#itemBody").innerHTML=`<h3>${t("اختر تصميم الإعلان")}</h3><p class="muted small">${t("كل التصاميم فيها رقم المنصة ورمز QR يفتح الإعلان مباشرة.")}</p>
+    <div class="designs">${keys.map(k=>`<button type="button" class="design${k===last?" on":""}" data-design="${k}"><span class="dimg" data-dimg="${k}"><span class="spin"></span></span><b>${t(THEMES[k].name)}</b></button>`).join("")}</div>
+    <div class="row"><button class="btn or" id="designGo">${t("شارك هذا التصميم")}</button><button class="btn ghost" data-close>${t("إغلاق")}</button></div>`;
+  if(!$("#dlgItem").open)$("#dlgItem").showModal();
+  PICK={o,name,key:keys.includes(last)?last:"classic"};
+  for(const k of keys){const bl=await adPoster(o,k);const el=$(`#itemBody [data-dimg="${k}"]`);if(!el||!bl)continue;
+    const u=URL.createObjectURL(bl);el.innerHTML=`<img src="${u}" alt="">`}
+}
+document.addEventListener("click",e=>{
+  const d=e.target.closest("[data-design]");if(d&&PICK){PICK.key=d.dataset.design;$$("#itemBody .design").forEach(b=>b.classList.toggle("on",b===d));try{localStorage.setItem("aq-theme",PICK.key)}catch(_){}}
+  if(e.target.closest("#designGo")&&PICK)shareImage(PICK.o,PICK.name,PICK.key);
+});
 const OLD=v=>window.AQ.oldTxt(v);
 const localNum=p=>{p=String(p||"").replace(/\D/g,"");return p.startsWith("222")&&p.length===11?p.slice(3):p};
 const siteShort=()=>(CFG.SITE_URL||location.host+location.pathname).replace(/^https?:\/\//,"").replace(/index\.html$/,"").replace(/\/$/,"");
@@ -179,6 +234,7 @@ function listingPoster(i){
     price2:old?`${fmt(i.price)} ${t("أوقية جديدة")}`:"",
     ctaLabel:t("للتواصل"),phone:localNum(to),
     foot:`${t("عقارك")} · ${siteShort()} · ${t("إعلان رقم")} ${i.id}`,
+    photo:(window.AQ.photosOf(i)||[])[0]||"",url:`${SITE()}#l-${i.id}`,
     shareText:`${i.title} — ${SITE()}#l-${i.id}`};
 }
 function requestPoster(q){
@@ -194,14 +250,14 @@ function requestPoster(q){
     sub:q.rooms?q.rooms+" "+t(q.rooms>2&&q.rooms<11?"غرف":"غرفة")+(q.duration?" · "+t(q.duration):""):"",place:A.place(q).replace(/<[^>]+>/g,""),why:t("ماذا يريد؟"),points:pts,
     priceLabel:t("الميزانية"),price:q.budget?`${t("حتى")} ${t(OLD(q.budget))} ${t("أوقية قديمة")}`:t("حسب العرض"),price2:q.budget?`${fmt(q.budget)} ${t("أوقية جديدة")}`:"",
     ctaLabel:t("عندك عرض؟"),phone:localNum(plat),foot:`${t("قدّم عرضك على")} ${siteShort()} · ${t("طلب رقم")} ${q.id}`,
-    shareText:`${t("عندك عرض؟ قدّمه على عقارك")} ${SITE()}?tab=req`};
+    url:`${SITE()}?tab=req`,shareText:`${t("عندك عرض؟ قدّمه على عقارك")} ${SITE()}?tab=req`};
 }
 document.addEventListener("click",e=>{
   const r=e.target.closest("[data-imgreq]"),l=e.target.closest("[data-imgitem]");
-  if(r){const q=A.reqs.find(x=>String(x.id)===r.dataset.imgreq);if(q)shareImage(requestPoster(q),`aqarak-talab-${q.id}.png`)}
-  if(l){const i=A.list.find(x=>String(x.id)===l.dataset.imgitem);if(i)shareImage(listingPoster(i),`aqarak-${i.id}.png`)}
+  if(r){const q=A.reqs.find(x=>String(x.id)===r.dataset.imgreq);if(q)pickDesign(requestPoster(q),`aqarak-talab-${q.id}.png`)}
+  if(l){const i=A.list.find(x=>String(x.id)===l.dataset.imgitem);if(i)pickDesign(listingPoster(i),`aqarak-${i.id}.png`)}
 });
-window.AQPOSTER={adPoster,listingPoster,requestPoster};
+window.AQPOSTER={adPoster,listingPoster,requestPoster,THEMES};
 /* ---------- 3) روابط المدن: ?city=نواذيبو ---------- */
 (function cityLink(){
   const c=new URLSearchParams(location.search).get("city");
