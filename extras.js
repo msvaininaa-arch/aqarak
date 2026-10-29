@@ -30,7 +30,7 @@ new MutationObserver(()=>{
   const b=$("#itemBody [data-share]");if(!b||$("#itemBody .shareWa"))return;
   const i=A.list.find(x=>String(x.id)===b.dataset.share);if(!i)return;
   const txt=`${i.title} — ${fmt(i.price)} أوقية\n${SITE()}#l-${i.id}`;
-  b.insertAdjacentHTML("beforebegin",`<button class="btn ghost small" data-imgitem="${i.id}">🖼 ${t("صورة للحالة")}</button><a class="btn ghost shareWa" href="https://wa.me/?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">${t("شارك على واتساب")}</a>`);
+  b.insertAdjacentHTML("beforebegin",`<button class="btn ghost small" data-imgitem="${i.id}">🖼 ${t("إعلان جاهز للنشر")}</button><a class="btn ghost shareWa" href="https://wa.me/?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">${t("شارك على واتساب")}</a>`);
   // زر المفضلة داخل التفاصيل
   b.insertAdjacentHTML("afterend",`<button class="btn ghost small" data-fav="${i.id}" aria-pressed="${favs().includes(i.id)}">${favs().includes(i.id)?"♥":"♡"} ${t("المفضلة")}</button>`);
 }).observe($("#itemBody"),{childList:true});
@@ -69,23 +69,139 @@ async function statusImage(o){
   x.font=`500 30px ${body}`;x.globalAlpha=.85;x.fillText((CFG.SITE_URL||location.host+location.pathname).replace(/^https?:\/\//,"").replace(/index\.html$/,"").replace(/\/$/,""),W/2,H-32);x.globalAlpha=1;
   return new Promise(r=>c.toBlob(r,"image/png"));
 }
+/* ---------- ملصق إعلان مصمّم (على طريقة إعلانات واتساب المحلية) ---------- */
+const FEAT_PT={
+  "كرن (زاوية)":["📐","كرن (زاوية)","واجهتان وقيمة أعلى"],
+  "على الكدرون (طريق معبّد)":["🛣️","على الكدرون","طريق معبّد أمامها"],
+  "مقسّمة رسميًا":["🗺️","مقسّمة رسميًا","ضمن مخطط معتمد"],
+  "ماء وكهرباء قريبة":["💧","ماء وكهرباء قريبة","توصيل سهل وسريع"],
+  "جاهزة للبناء":["🏗️","جاهزة للبناء","ابدأ البناء فورًا"],
+  "ماء":["💧","ماء متوفر","شبكة ماء"],
+  "خزان ماء":["🛢️","خزان ماء","احتياط عند الانقطاع"],
+  "عداد كهرباء":["⚡","عداد كهرباء","خاص بالمسكن"],
+  "حوش":["🌴","حوش","مساحة خارجية"],
+  "مدخل مستقل":["🚪","مدخل مستقل","خصوصية تامة"],
+  "موقف سيارة":["🚗","موقف سيارة","داخل المبنى أو أمامه"],
+  "مكيّفات":["❄️","مكيّفات","راحة في الحر"],
+  "سطح":["🏠","سطح","مساحة إضافية"],
+  "قرب مسجد":["🕌","قرب مسجد","على مسافة قريبة"],
+  "قرب مدرسة":["🏫","قرب مدرسة","مناسب للعائلات"],
+  "السعر قابل للتفاوض":["🤝","السعر قابل للتفاوض","تواصل واتفق"]
+};
+function rr(x,X,Y,w,h,r){x.beginPath();if(x.roundRect){x.roundRect(X,Y,w,h,r);return}x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()}
+function fitFont(x,txt,weight,size,fam,maxW){let s=size;do{x.font=`${weight} ${s}px ${fam}`;if(x.measureText(txt).width<=maxW)break;s-=4}while(s>26);return s}
+async function adPoster(o){
+  try{await document.fonts.ready}catch(_){}
+  const W=1080,H=1350,P=70,c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");
+  const css=getComputedStyle(document.documentElement),v=n=>css.getPropertyValue(n).trim();
+  const disp=v("--display")||"sans-serif",body=v("--body")||"sans-serif",fr=window.AQ_I18N&&AQ_I18N.lang==="fr";
+  const NAVY="#173B67",RED="#C0262D",GOLD="#F4C430",CREAM="#F7F3EA",INK="#1D2333",MUTED="#6B6F7B";
+  const R=W-P,L=P; x.direction=fr?"ltr":"rtl";
+  const at=(txt,X,Y,align)=>{x.textAlign=align;x.fillText(txt,X,Y)};
+  const START=fr?"left":"right",END=fr?"right":"left",SX=fr?L:R,EX=fr?R:L;
+  // الرأس الأزرق
+  const HH=500;x.fillStyle=NAVY;x.fillRect(0,0,W,HH);
+  x.fillStyle="rgba(255,255,255,.05)";for(let i=0;i<5;i++){x.beginPath();x.arc(fr?W-120:120,HH-40,120+i*70,0,7);x.lineWidth=2;x.strokeStyle="rgba(255,255,255,.06)";x.stroke()}
+  // الوسم الأصفر
+  x.font=`800 42px ${body}`;const bw=x.measureText(o.badge).width+64;x.fillStyle=GOLD;rr(x,fr?L:R-bw,58,bw,78,12);x.fill();
+  x.fillStyle=RED;at(o.badge,fr?L+bw/2:R-bw/2,112,"center");
+  // سطر علوي صغير
+  x.fillStyle="rgba(255,255,255,.9)";x.font=`500 30px ${body}`;at(o.top,EX,108,END);
+  // العنوان الكبير: النوع بالأحمر + المساحة بالأصفر
+  let fs=fitFont(x,o.head+"  "+(o.size||""),"800",104,disp,W-2*P);
+  x.font=`800 ${fs}px ${disp}`;const hw=x.measureText(o.head).width;
+  x.fillStyle="#FF5A5F";at(o.head,SX,270,START);
+  if(o.size){x.fillStyle=GOLD;at(o.size,fr?SX+hw+28:SX-hw-28,270,START)}
+  // سطر فرعي
+  let y=345;if(o.sub){x.fillStyle="#fff";fitFont(x,o.sub,"600",40,body,W-2*P);at(o.sub,SX,y,START);y+=72}else y+=20;
+  // المكان
+  x.fillStyle="#fff";x.font=`700 44px ${body}`;at("📍 "+o.place,SX,Math.min(y+10,455),START);
+  // الجسم الكريمي
+  x.fillStyle=CREAM;x.fillRect(0,HH,W,H-HH);
+  x.fillStyle=RED;x.font=`800 50px ${disp}`;at(o.why,SX,HH+90,START);
+  // النقاط: عمودان
+  const pts=o.points.slice(0,6),colW=(W-2*P-30)/2,rows=Math.max(1,Math.ceil(pts.length/2)),avail=(H-330-30)-(HH+130),rowH=Math.min(150,avail/rows);let top=HH+130+(avail-rows*rowH)/2+(rowH-90)/2;
+  pts.forEach((p,k)=>{
+    const col=k%2,row=Math.floor(k/2),cx=fr?(L+col*(colW+30)):(R-col*(colW+30)),cy=top+row*rowH;
+    const icx=fr?cx+40:cx-40;x.fillStyle=NAVY;x.beginPath();x.arc(icx,cy+36,40,0,7);x.fill();
+    x.font=`38px ${body}`;x.fillStyle="#fff";at(p[0],icx,cy+50,"center");
+    const tx=fr?cx+98:cx-98,maxW=colW-110;
+    x.fillStyle=INK;fitFont(x,p[1],"700",38,body,maxW);at(p[1],tx,cy+30,START);
+    if(p[2]){x.fillStyle=MUTED;fitFont(x,p[2],"500",28,body,maxW);at(p[2],tx,cy+72,START)}
+  });
+  // صندوق السعر
+  const py=H-330;x.lineWidth=3;x.strokeStyle="#C9CED8";x.fillStyle="#fff";rr(x,L,py,W-2*P,128,18);x.fill();x.stroke();
+  x.fillStyle=MUTED;x.font=`500 32px ${body}`;at(o.priceLabel,SX+(fr?28:-28),py+52,START);
+  x.font=`500 28px ${body}`;const side=Math.max(x.measureText(o.price2||"").width,200)+80;
+  if(o.price2){x.fillStyle=MUTED;at(o.price2,SX+(fr?28:-28),py+100,START)}
+  if(o.price){x.fillStyle=RED;fitFont(x,o.price,"800",58,disp,W-2*P-side-40);at(o.price,EX+(fr?-30:30),py+82,END)}
+  // شريط واتساب
+  const wy=H-182;x.fillStyle=NAVY;rr(x,L,wy,W-2*P,110,18);x.fill();
+  x.fillStyle="#fff";x.font=`700 38px ${body}`;at("💬 "+o.ctaLabel,SX+(fr?30:-30),wy+70,START);
+  x.fillStyle=GOLD;fitFont(x,o.phone,"800",64,disp,W/2);x.direction="ltr";at(o.phone,fr?R-30:L+30,wy+78,fr?"right":"left");x.direction=fr?"ltr":"rtl";
+  // التذييل
+  x.fillStyle=MUTED;x.font=`500 27px ${body}`;at(o.foot,W/2,H-30,"center");
+  return new Promise(r=>c.toBlob(r,"image/png"));
+}
 async function shareImage(o,name){
-  const blob=await statusImage(o);if(!blob){toast(t("تعذّر إنشاء الصورة"));return}
+  const blob=await adPoster(o);if(!blob){toast(t("تعذّر إنشاء الصورة"));return}
   const file=new File([blob],name,{type:"image/png"});
-  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:o.cta+" "+SITE()});return}}catch(err){if(err&&err.name==="AbortError")return}
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:o.shareText||SITE()});return}}catch(err){if(err&&err.name==="AbortError")return}
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
   toast(t("حُفظت الصورة: انشرها في حالة واتساب"));
 }
 const OLD=v=>window.AQ.oldTxt(v);
+const localNum=p=>{p=String(p||"").replace(/\D/g,"");return p.startsWith("222")&&p.length===11?p.slice(3):p};
+const siteShort=()=>(CFG.SITE_URL||location.host+location.pathname).replace(/^https?:\/\//,"").replace(/index\.html$/,"").replace(/\/$/,"");
+function whyOf(i){const k=i.kind==="land"||i.ptype==="أرض"?"land":i.ptype;
+  return t({land:"لماذا هذه الأرض؟","شقة":"لماذا هذه الشقة؟","دار":"لماذا هذا البيت؟","محل":"لماذا هذا المحل؟","مكتب":"لماذا هذا المكتب؟","غرفة":"لماذا هذه الغرفة؟"}[k]||"لماذا هذا العقار؟")}
+function pointsOf(i){
+  const pts=[];const add=p=>{if(p&&pts.length<6&&!pts.some(q=>q[1]===p[1]))pts.push(p.map(s=>s&&t(s)))};
+  if(i.title_doc)add(["📄","وثائق: "+i.title_doc,i.kind==="land"||i.kind==="home_sale"?"جاهزة للفرغ":"موثّقة"]);
+  if(i.rooms&&i.kind!=="land")add(["🛏️",i.rooms+" "+(i.rooms>2&&i.rooms<11?"غرف":"غرفة"),i.size_m2?fmt(i.size_m2)+" م²":""]);
+  if(i.solar)add(["☀️","بلا انقطاع كهرباء","طاقة بديلة أو مولّد"]);
+  if(i.furnished)add(["🛋️","مفروشة","جاهزة للسكن"]);
+  (Array.isArray(i.features)?i.features:[]).forEach(f=>add(FEAT_PT[f]||["✓",f,""]));
+  if(i.kind==="rent"&&i.advance_months)add(["💵",window.AQ.ADV_TXT(i.advance_months),"وضوح قبل الاتفاق"]);
+  if(pts.length<2)add(["🔍","معروض على عقارك","تفاصيله الكاملة على الموقع"]);
+  return pts;
+}
+function listingPoster(i){
+  const sale=i.kind==="land"||i.kind==="home_sale",per=i.kind==="rent"?" "+t("/ شهر"):i.kind==="daily"?" "+t("/ ليلة"):"";
+  const head=t(i.kind==="land"||i.ptype==="أرض"?"قطعة أرضية":i.ptype);
+  const plat=window.AQ.cleanPhone(CFG.PLATFORM_WHATSAPP),to=(CFG.CONTACT_VIA_PLATFORM&&plat)?plat:(window.AQ.cleanPhone(i.contact_whatsapp)||plat);
+  const old=OLD(i.price);
+  return {badge:t(sale?"للبيع":i.kind==="daily"?"إيجار يومي":"للإيجار"),
+    top:t("عبر عقارك · سماسرة موثوقون"),head,size:i.size_m2?fmt(i.size_m2)+" "+t("م²"):"",
+    sub:(i.title&&i.title!==head)?i.title:"",place:A.place(i).replace(/<[^>]+>/g,""),
+    why:whyOf(i),points:pointsOf(i),priceLabel:t("السعر"),
+    price:old?`${t(old)} ${t("أوقية قديمة")}${per}`:`${fmt(i.price)} ${t("أوقية")}${per}`,
+    price2:old?`${fmt(i.price)} ${t("أوقية جديدة")}`:"",
+    ctaLabel:t("للتواصل"),phone:localNum(to),
+    foot:`${t("عقارك")} · ${siteShort()} · ${t("إعلان رقم")} ${i.id}`,
+    shareText:`${i.title} — ${SITE()}#l-${i.id}`};
+}
+function requestPoster(q){
+  const pts=[];const add=p=>{if(p&&pts.length<6)pts.push(p.map(s=>s&&t(s)))};
+  add(["📍",A.place(q).replace(/<[^>]+>/g,""),"المكان المطلوب"]);
+  if(q.rooms)add(["🛏️",q.rooms+" "+(q.rooms>2&&q.rooms<11?"غرف":"غرفة"),"على الأقل"]);
+  if(q.duration)add(["📅",q.duration,"مدة الإيجار"]);
+  if(q.furnished)add(["🛋️","مفروشة",""]);
+  (Array.isArray(q.features)?q.features:[]).forEach(f=>add(FEAT_PT[f]||["✓",f,""]));
+  if(q.notes)add(["📝",String(q.notes).slice(0,40),""]);
+  const plat=window.AQ.cleanPhone(CFG.PLATFORM_WHATSAPP);
+  return {badge:t("مطلوب"),top:t("طلب حقيقي راجعته عقارك"),head:t(q.ptype),size:t(A.reqKind(q.kind)),
+    sub:q.rooms?q.rooms+" "+t(q.rooms>2&&q.rooms<11?"غرف":"غرفة")+(q.duration?" · "+t(q.duration):""):"",place:A.place(q).replace(/<[^>]+>/g,""),why:t("ماذا يريد؟"),points:pts,
+    priceLabel:t("الميزانية"),price:q.budget?`${t("حتى")} ${t(OLD(q.budget))} ${t("أوقية قديمة")}`:t("حسب العرض"),price2:q.budget?`${fmt(q.budget)} ${t("أوقية جديدة")}`:"",
+    ctaLabel:t("عندك عرض؟"),phone:localNum(plat),foot:`${t("قدّم عرضك على")} ${siteShort()} · ${t("طلب رقم")} ${q.id}`,
+    shareText:`${t("عندك عرض؟ قدّمه على عقارك")} ${SITE()}?tab=req`};
+}
 document.addEventListener("click",e=>{
   const r=e.target.closest("[data-imgreq]"),l=e.target.closest("[data-imgitem]");
-  if(r){const q=A.reqs.find(x=>String(x.id)===r.dataset.imgreq);if(!q)return;
-    shareImage({tag:t("مطلوب")+" · "+t(A.reqKind(q.kind)),title:`${t(q.ptype)}${q.rooms?" · "+q.rooms+" "+t("غرف"):""}`,price:q.budget?`${t("حتى")} ${fmt(q.budget)}`:"",old:q.budget?`${t("بالقديمة")}: ${OLD(q.budget)}`:"",
-      place:A.place(q).replace(/<[^>]+>/g,""),extra:q.notes||"",cta:t("عندك عرض؟ قدّمه على عقارك")},`aqarak-talab-${q.id}.png`)}
-  if(l){const i=A.list.find(x=>String(x.id)===l.dataset.imgitem);if(!i)return;
-    shareImage({tag:t(window.AQ.KIND_LABEL[i.kind]),title:i.title,price:`${fmt(i.price)} ${t("أوقية")}${i.kind==="rent"?" "+t("/ شهر"):i.kind==="daily"?" "+t("/ ليلة"):""}`,old:`${t("بالقديمة")}: ${OLD(i.price)}`,
-      place:A.place(i).replace(/<[^>]+>/g,""),extra:(Array.isArray(i.features)?i.features.slice(0,3).map(t).join(" · "):""),cta:t("تفاصيله ورقمه على عقارك")+" · "+t("رقم")+" "+i.id},`aqarak-${i.id}.png`)}
+  if(r){const q=A.reqs.find(x=>String(x.id)===r.dataset.imgreq);if(q)shareImage(requestPoster(q),`aqarak-talab-${q.id}.png`)}
+  if(l){const i=A.list.find(x=>String(x.id)===l.dataset.imgitem);if(i)shareImage(listingPoster(i),`aqarak-${i.id}.png`)}
 });
+window.AQPOSTER={adPoster,listingPoster,requestPoster};
 /* ---------- 3) روابط المدن: ?city=نواذيبو ---------- */
 (function cityLink(){
   const c=new URLSearchParams(location.search).get("city");
