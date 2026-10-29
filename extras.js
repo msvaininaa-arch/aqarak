@@ -121,6 +121,17 @@ function paintHead(x,th,key,W,HH,fr){
   x.fillStyle=th.head;x.fillRect(0,0,W,HH);
   for(let i=0;i<5;i++){x.beginPath();x.arc(fr?W-120:120,HH-40,120+i*70,0,7);x.lineWidth=2;x.strokeStyle="rgba(255,255,255,.06)";x.stroke()}
 }
+// لقطة خريطة فضائية حول موقع العقار (بلاطات Esri تسمح بالرسم على canvas)
+async function mapSnap(lat,lng,w,h,z){
+  if(lat==null||lng==null||isNaN(lat)||isNaN(lng))return null;z=z||16;
+  const n=256*Math.pow(2,z),px=(Number(lng)+180)/360*n,s=Math.sin(Number(lat)*Math.PI/180),py=(.5-Math.log((1+s)/(1-s))/(4*Math.PI))*n;
+  const x0=px-w/2,y0=py-h/2,tx0=Math.floor(x0/256),ty0=Math.floor(y0/256),tx1=Math.floor((x0+w)/256),ty1=Math.floor((y0+h)/256);
+  const c=document.createElement("canvas");c.width=w;c.height=h;const g=c.getContext("2d");g.fillStyle="#d9cdb4";g.fillRect(0,0,w,h);
+  const jobs=[];for(let tx=tx0;tx<=tx1;tx++)for(let ty=ty0;ty<=ty1;ty++)jobs.push(loadImg(`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${ty}/${tx}`).then(im=>{if(im)g.drawImage(im,tx*256-x0,ty*256-y0);return !!im}));
+  const ok=(await Promise.all(jobs)).filter(Boolean).length;if(!ok)return null;
+  try{g.getImageData(0,0,1,1)}catch(_){return null}
+  return c;
+}
 async function adPoster(o,key){
   key=THEMES[key]?key:"classic";const th=THEMES[key];
   try{await document.fonts.ready}catch(_){}
@@ -154,10 +165,21 @@ async function adPoster(o,key){
   // لماذا؟
   const wy=HH+(key==="brand"?40:90);x.fillStyle=th.why;x.font=`800 50px ${disp}`;at(o.why,SX,wy,START);
   if(key!=="classic"){const tw=x.measureText(o.why).width;x.fillStyle=th.size;x.fillRect(fr?SX:SX-Math.min(tw,140),wy+16,Math.min(tw,140),6)}
-  const pts=o.points.slice(0,img?4:6),colW=(W-2*P-30)/2,rows=Math.max(1,Math.ceil(pts.length/2)),y0=wy+40,avail=(H-330-30)-y0,rowH=Math.min(150,avail/rows);
+  const colW=(W-2*P-30)/2,y0=wy+40,avail=(H-330-30)-y0;
+  // خريطة الموقع: نصف المساحة، والمزايا في عمود واحد
+  const mp=(!img&&o.lat!=null)?await mapSnap(o.lat,o.lng,Math.round(colW),Math.round(avail-10),16):null;
+  if(mp){const MX=fr?R-colW:L,MY=y0+5;x.save();rr(x,MX,MY,colW,avail-10,22);x.clip();x.drawImage(mp,MX,MY);
+    const gg=x.createLinearGradient(0,MY+avail-90,0,MY+avail);gg.addColorStop(0,"rgba(0,0,0,0)");gg.addColorStop(1,"rgba(0,0,0,.6)");x.fillStyle=gg;x.fillRect(MX,MY,colW,avail);x.restore();
+    x.lineWidth=4;x.strokeStyle=key==="gold"?"#D4AF37":"#fff";rr(x,MX,MY,colW,avail-10,22);x.stroke();
+    // دبوس الموقع
+    const cx=MX+colW/2,cy=MY+(avail-10)/2;x.fillStyle="rgba(255,90,95,.25)";x.beginPath();x.arc(cx,cy,46,0,7);x.fill();
+    x.fillStyle="#E53935";x.beginPath();x.arc(cx,cy-34,24,Math.PI*.85,Math.PI*2.15);x.lineTo(cx,cy);x.closePath();x.fill();x.fillStyle="#fff";x.beginPath();x.arc(cx,cy-36,9,0,7);x.fill();
+    x.fillStyle="#fff";x.font=`700 30px ${body}`;at("🛰️ "+t("موقعه على الخريطة"),MX+colW/2,MY+avail-34,"center");
+    x.font=`400 16px ${body}`;x.globalAlpha=.8;at("© Esri",fr?MX+colW-14:MX+14,MY+24,fr?"right":"left");x.globalAlpha=1}
+  const one=!!mp,pts=o.points.slice(0,one?3:img?4:6),rows=Math.max(1,one?pts.length:Math.ceil(pts.length/2)),rowH=Math.min(150,avail/rows);
   let top=y0+(avail-rows*rowH)/2+(rowH-90)/2;
   pts.forEach((p,k)=>{
-    const col=k%2,row=Math.floor(k/2),cx=fr?(L+col*(colW+30)):(R-col*(colW+30)),cy=top+row*rowH,icx=fr?cx+40:cx-40;
+    const col=one?0:k%2,row=one?k:Math.floor(k/2),cx=fr?(L+col*(colW+30)):(R-col*(colW+30)),cy=top+row*rowH,icx=fr?cx+40:cx-40;
     x.fillStyle=th.ic;x.beginPath();x.arc(icx,cy+36,40,0,7);x.fill();if(key==="gold"){x.strokeStyle="#D4AF37";x.lineWidth=2;x.stroke()}
     x.font=`38px ${body}`;x.fillStyle=th.icTxt;at(p[0],icx,cy+50,"center");
     const tx=fr?cx+98:cx-98,maxW=colW-110;
@@ -234,7 +256,7 @@ function listingPoster(i){
     price2:old?`${fmt(i.price)} ${t("أوقية جديدة")}`:"",
     ctaLabel:t("للتواصل"),phone:localNum(to),
     foot:`${t("عقارك")} · ${siteShort()} · ${t("إعلان رقم")} ${i.id}`,
-    photo:(window.AQ.photosOf(i)||[])[0]||"",url:`${SITE()}#l-${i.id}`,
+    lat:i.lat??null,lng:i.lng??null,photo:(window.AQ.photosOf(i)||[])[0]||"",url:`${SITE()}#l-${i.id}`,
     shareText:`${i.title} — ${SITE()}#l-${i.id}`};
 }
 function requestPoster(q){
