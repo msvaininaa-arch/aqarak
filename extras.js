@@ -279,7 +279,7 @@ document.addEventListener("click",e=>{
   if(r){const q=A.reqs.find(x=>String(x.id)===r.dataset.imgreq);if(q)pickDesign(requestPoster(q),`aqarak-talab-${q.id}.png`)}
   if(l){const i=A.list.find(x=>String(x.id)===l.dataset.imgitem);if(i)pickDesign(listingPoster(i),`aqarak-${i.id}.png`)}
 });
-window.AQPOSTER={adPoster,listingPoster,requestPoster,THEMES};
+window.AQPOSTER={adPoster,listingPoster,requestPoster,THEMES,openFor:id=>{const i=A.list.find(x=>String(x.id)===String(id));if(i)pickDesign(listingPoster(i),`aqarak-${i.id}.png`)}};
 /* ---------- 3) روابط المدن: ?city=نواذيبو ---------- */
 (function cityLink(){
   const c=new URLSearchParams(location.search).get("city");
@@ -387,3 +387,9 @@ document.addEventListener("click",e=>{const f=e.target.closest("[data-fav]");if(
 $("#cmpBtn").addEventListener("click",compare);
 cityLinks();all();
 })();
+
+/* ---------- زر واتساب العائم: يختفي عند النزول ويظهر عند الصعود أو فتح نافذة ---------- */
+(function(){const w=document.getElementById("waFloat");if(!w)return;let last=scrollY,tick=false;
+  const upd=()=>{const y=scrollY,open=!!document.querySelector("dialog[open]");w.classList.toggle("away",open||(y>last+4&&y>300));if(y<last-4||y<300)if(!open)w.classList.remove("away");last=y;tick=false};
+  addEventListener("scroll",()=>{if(!tick){tick=true;requestAnimationFrame(upd)}},{passive:true});
+  new MutationObserver(upd).observe(document.body,{subtree:true,attributes:true,attributeFilter:["open"]});})();

@@ -1,6 +1,6 @@
 // عقارك — عامل الخدمة: يفتح الموقع بسرعة ويعمل عند ضعف الإنترنت
-const V="aq-2026.10.29c";
-const SHELL=["./","index.html","styles.css?v=2026.10.29c","config.js?v=2026.10.29c","i18n.js?v=2026.10.29c","art.js?v=2026.10.29c","common.js?v=2026.10.29c","app.js?v=2026.10.29c","extras.js?v=2026.10.29c","services.js?v=2026.10.29c","icon.svg","icon-192.png","manifest.json"];
+const V="aq-2026.11.01";
+const SHELL=["./","index.html","styles.css?v=2026.11.01","config.js?v=2026.11.01","i18n.js?v=2026.11.01","art.js?v=2026.11.01","common.js?v=2026.11.01","app.js?v=2026.11.01","extras.js?v=2026.11.01","services.js?v=2026.11.01","icon.svg","icon-192.png","manifest.json"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",e=>{

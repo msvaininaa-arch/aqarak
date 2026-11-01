@@ -247,6 +247,7 @@ function openItem(id){
     <div class="facts"><span>${place(i)}</span><span>${t(KIND_LABEL[i.kind])}</span><span>${esc(label(i))}</span>${i.rooms&&i.kind!=="land"?`<span>${roomsTxt(i.rooms)}</span>`:""}${i.size_m2?`<span>${fmt(i.size_m2)} ${t("م²")}</span>`:""}${i.furnished?`<span>${t("مفروش")}</span>`:""}${i.solar?`<span>${t("بلا انقطاع")}</span>`:""}${i.title_doc?`<span>${esc(t(i.title_doc))}</span>`:""}${i.kind==="rent"&&i.advance_months?`<span class="adv">${t(ADV_TXT(i.advance_months))}</span>`:""}</div>
     ${feats(i).length?`<div class="facts">${feats(i).map(x=>`<span class="${x===NEGO?"nego":""}">✓ ${esc(t(x))}</span>`).join("")}</div>`:""}
     ${(b=>b?`<div class="vbline">✓ ${t("يعرضه سمسار موثّق")}: <b>${esc(b.name)}</b> <button type="button" class="linkbtn" data-go="brokers">${t("ماذا يعني؟")}</button></div>`:"")(vbOf(i.contact_whatsapp))}
+    ${i.lat!=null&&i.lng!=null?`<div class="locrow"><a class="btn ghost small" href="https://www.google.com/maps/dir/?api=1&destination=${Number(i.lat)},${Number(i.lng)}" target="_blank" rel="noopener">🧭 ${t("الطريق إليه")}</a><a class="btn ghost small" href="https://www.google.com/maps?q=${Number(i.lat)},${Number(i.lng)}&t=k" target="_blank" rel="noopener">🛰️ ${t("صورته الفضائية")}</a></div>`:""}
     ${fairRange(i)}
     ${i.description?`<p style="margin:0;white-space:pre-line">${esc(i.description)}</p>`:""}
     <div class="row">
@@ -549,7 +550,7 @@ async function load(){
   $("#grid").removeAttribute("aria-busy");
   render();renderMine();
   const op=new URLSearchParams(location.search).get("open");if(op==="req")openDialog("dlgReq","rent");if(op==="add")openDialog("dlgAdd","rent");if(op)try{history.replaceState(null,"",location.pathname+location.hash)}catch(_){}
-  const h=location.hash.match(/^#l-(\d+)$/);if(h)openItem(h[1]);
+  const h=location.hash.match(/^#l-(\d+)(-p)?$/);if(h){openItem(h[1]);if(h[2]){let n=0;const iv=setInterval(()=>{if(window.AQPOSTER||++n>40){clearInterval(iv);if(window.AQPOSTER)AQPOSTER.openFor(h[1])}},150)}}
   if(location.hash==="#requests"){S.kind="req";render();$("#market").scrollIntoView()}
 }
 // واجهة للإضافات (extras.js): تقرأ البيانات وتعيد الرسم

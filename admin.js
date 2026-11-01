@@ -35,7 +35,7 @@ function draw(){
       <td><div class="row">
         ${l.status!=="approved"?`<button class="btn small" data-a="approve" data-id="${l.id}">انشر</button>`:""}
         ${l.status==="pending"?`<button class="btn small ghost" data-a="reject" data-id="${l.id}">ارفض</button>`:""}
-        ${l.status==="approved"&&window.AQ.FEAT("FRESHNESS")?`<button class="btn small ghost" data-a="confirm" data-id="${l.id}">✓ ما زال متوفرًا</button>`:""}${l.status==="approved"?`<button class="btn small ghost" data-a="feature" data-id="${l.id}">${l.featured?"ألغِ التمييز":"ميّز"}</button><button class="btn small ghost" data-a="rented" data-id="${l.id}">أُجّر/بيع</button>`:""}
+        ${l.status==="approved"&&window.AQ.FEAT("FRESHNESS")?`<button class="btn small ghost" data-a="confirm" data-id="${l.id}">✓ ما زال متوفرًا</button>`:""}${l.status==="approved"?`<a class="btn small ghost" href="./#l-${l.id}-p" target="_blank" rel="noopener">🖼 إعلان</a>`:""}${l.status==="approved"?`<button class="btn small ghost" data-a="feature" data-id="${l.id}">${l.featured?"ألغِ التمييز":"ميّز"}</button><button class="btn small ghost" data-a="rented" data-id="${l.id}">أُجّر/بيع</button>`:""}
         <button class="btn small danger" data-a="del" data-id="${l.id}">احذف</button></div></td></tr>`).join(""):`<tr><td colspan="7" class="alt">لا شيء هنا.</td></tr>`);
   }else if(TAB==="requests"){
     T.innerHTML=`<tr><th>#</th><th>الطلب</th><th>الميزانية</th><th>المقيم في</th><th>صاحب الطلب</th><th>الحالة</th><th></th></tr>`+(DATA.requests.length?DATA.requests.slice().sort((x,y)=>(y.status==="pending")-(x.status==="pending")).map(r=>`<tr>
